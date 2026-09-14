@@ -1,0 +1,14 @@
+import { writeFileSync, mkdirSync } from "node:fs";
+import { campaignCopy, campaignPreset } from "../src/shared/campaign.ts";
+mkdirSync("public/live-assets", { recursive: true });
+for (const l of ["zh", "th"] as const) {
+  const c = campaignCopy[l];
+  const tiers = campaignPreset(l).filter((p) => p.eventType === "gift");
+  const html = `<!doctype html><html lang="${l}"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${c.title} · ${c.gifts}</title><style>*{box-sizing:border-box}body{margin:0;background:#103f43;color:#fffaf2;font-family:'PingFang SC',Thonburi,sans-serif}main{width:1080px;height:1920px;padding:150px 90px 100px;background:url('/live-assets/wish-post.png') center/cover;display:flex;flex-direction:column}header{text-align:center}header p{font-size:23px;letter-spacing:5px;color:#bde6df}h1{font-size:${l === "th" ? 66 : 94}px;margin:26px 0}header span{font-size:29px}.letter{margin:70px 0 38px;background:#fffaf2;color:#103f43;padding:54px 48px;border-top:10px solid #ef6553;border-radius:6px;text-align:center}.letter h2{font-size:44px;line-height:1.6;margin:0 0 20px;white-space:pre-line}.letter p{font-size:26px;line-height:1.5}.rewards{background:#082b2fe8;padding:30px 42px;border-radius:8px}.rewards h2{font-size:36px;margin:10px 0 30px}.tier{display:flex;align-items:center;gap:30px;padding:32px 0;border-top:1px solid #bde6df55}.icon{width:110px;height:110px;flex-shrink:0;border-radius:22px;background:#ef6553;position:relative}.icon:before{content:'';position:absolute;left:25px;top:32px;width:60px;height:53px;border:6px solid #fffaf2;border-radius:6px}.icon:after{content:'';position:absolute;top:28px;left:52px;width:6px;height:60px;background:#fffaf2}.tier:nth-of-type(2) .icon{background:#3a8a87}.tier:nth-of-type(3) .icon{background:#aa7c30}.tier strong{font-size:31px}.tier p{font-size:30px;color:#bde6df;margin:14px 0 0}.note{font-size:22px;line-height:1.6;color:#c8ded9}footer{margin-top:auto;text-align:center;font-size:22px;line-height:1.6}body{width:540px;height:960px;overflow:hidden}main{transform:scale(.5);transform-origin:top left}</style><main><header><p>WISH POST · AI LIVE STUDIO</p><h1>${c.title}</h1><span>${c.subtitle}</span></header><section class="letter"><h2>${c.idle}</h2><p>${c.free}</p></section><section class="rewards"><h2>${c.gifts}</h2>${tiers.map((p) => `<article class="tier"><span class="icon" aria-hidden="true"></span><div><strong>${c.anyGift} × ${p.minCount}</strong><p>${p.name}</p></div></article>`).join("")}<p class="note">${c.countNote}</p></section><footer>${c.note}</footer></main></html>`;
+  writeFileSync("public/live-assets/activity-" + l + ".html", html);
+  writeFileSync(
+    "public/live-assets/content-" + l + ".json",
+    JSON.stringify({ language: l, copy: c, rules: campaignPreset(l) }, null, 2),
+  );
+}
+console.log("Chinese and Thai activity pages and copy exported.");

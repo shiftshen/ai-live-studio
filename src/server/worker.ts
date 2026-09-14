@@ -12,6 +12,7 @@ import {
 } from "./providers.ts";
 export class Worker {
   busy = false;
+  lastExpiryAt = 0;
   active = new Map<string, Promise<void>>();
   preparing = new Map<string, Promise<any>>();
   timer: ReturnType<typeof setInterval> | null = null;
@@ -58,24 +59,27 @@ export class Worker {
   async tick() {
     if (this.store.setting("config").paused) return;
     const cfg = this.store.setting("config");
-    this.store.db
-      .prepare(
-        `UPDATE jobs SET data=json_set(data,'$.status','expired','$.error','欢迎消息已过期') WHERE json_extract(data,'$.status') IN ('pending','ready') AND at<? AND json_extract(data,'$.eventId') IN (SELECT id FROM events WHERE json_extract(data,'$.type')='join')`,
-      )
-      .run(Date.now() - 120000);
+    if (Date.now() - this.lastExpiryAt >= 10000) {
+      this.lastExpiryAt = Date.now();
+      this.store.db
+        .prepare(
+          `UPDATE jobs SET data=json_set(data,'$.status','expired','$.error','欢迎消息已过期') WHERE json_extract(data,'$.status') IN ('pending','ready') AND at<? AND json_extract(data,'$.eventId') IN (SELECT id FROM events WHERE json_extract(data,'$.type')='join')`,
+        )
+        .run(Date.now() - 120000);
 
-    // Offline OBS must not play hours-old ordinary interactions on reconnect.
-    // Gift feedback and physical print work retain their explicit recovery flow.
-    this.store.db
-      .prepare(
-        `UPDATE jobs SET data=json_set(data,
+      // Offline OBS must not play hours-old ordinary interactions on reconnect.
+      // Gift feedback and physical print work retain their explicit recovery flow.
+      this.store.db
+        .prepare(
+          `UPDATE jobs SET data=json_set(data,
       '$.status','expired','$.error','普通画面或语音已超过2分钟，保留记录不再播放',
       '$.updatedAt',?) WHERE json_extract(data,'$.status') IN ('pending','ready')
       AND json_extract(data,'$.action') IN ('speech','overlay') AND at<?
       AND json_extract(data,'$.eventId') IN (SELECT id FROM events
         WHERE json_extract(data,'$.type') IN ('follow','comment','like'))`,
-      )
-      .run(Date.now(), Date.now() - 120000);
+        )
+        .run(Date.now(), Date.now() - 120000);
+    }
 
     const candidates = this.store.db
       .prepare(

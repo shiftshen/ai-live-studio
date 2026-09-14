@@ -100,7 +100,7 @@ load-test 写独立测试数据库，模拟100条/秒、600秒，默认不匹配
 
 系统“实体测试模式”默认开启：本机专用设备测试和真实直播打印合计最多10张，已用额度展示于设置页，保留在备份恢复保护中。不要清零testPages以重复测试。正式运营关闭测试模式会解除这项总额度，但仍保留每分钟速度和设备队列上限。
 
-本次现场剩余额度5张；测试配置仅礼物保留实体打印，欢迎与问候不打印，仍可语音/展示。原规则快照：`/Volumes/M2USB/Projects/ai-live-studio/var/evidence/rules-before-bounded-live-test.json`。
+历史测试规则快照（已停用，不可按旧额度继续打印）：`/Volumes/M2USB/Projects/ai-live-studio/var/evidence/rules-before-bounded-live-test.json`。
 
 补打需要理由且原任务必须结束（unknown、failed或completed）。设备可执行积压包含pending/sending/processing/accepted；held不自动派发，可在容量释放后人工逐个重试。补打与重试满额返回409，保留原任务。
 
@@ -110,14 +110,35 @@ load-test 写独立测试数据库，模拟100条/秒、600秒，默认不匹配
 
 本次手机TikTok资格页显示至少50粉丝，当前9粉丝，没有申请入口；不得伪称已申请成功，也不购买粉丝。门槛可能因地区/账号变化，应以设备当前资格页为准。官方说明：[TikTok LIVE安全指南](https://www.tiktok.com/safety/en/live-safety-guide?sc_version=2024)。
 
-抖音只查看了开播准备页，未公开开播。测试无需自播即可先验证公开事件；若后续自播，必须遵守用户授权的10分钟上限。
+抖音现已完成自己的账号9分7秒实际开播，并确认结束。公开房间采集不能替代自己的直播音画验收；详见本轮实播报告。
 
 ## OBS验收恢复
 
-官方OBS32.2.2已放置于`/Volumes/M2USB/Projects/ai-live-studio/var/vendor/OBS.app`。首次本地浏览器源录制出现黑屏静音，软件渲染与基础HTML探针也未通过。Mac锁屏阻止进一步界面调试；尚未归因，不能把录制按钮启动当验收成功。
+官方OBS32.2.2已放置于`/Volumes/M2USB/Projects/ai-live-studio/var/vendor/OBS.app`。首次本地浏览器源录制出现黑屏静音，软件渲染与基础HTML探针也未通过。后续已解锁并续测，OBS浏览器问题仍未解决；本轮使用官方Mac抖音直播伴侣采集原生展示窗口。
 
 正常配置是本机工作台给出的房间展示URL、1920×1080或1080×1920、启用“通过OBS控制音频”。URL包含只读房间令牌，不写入公共截图/仓库。仅保留一个该房间的播放消费者，避免多个浏览器源重复播放同一任务。
 
-当前OBS来源处于诊断地址，恢复测试时应改回工作台的房间展示URL。诊断本机代理8891只用于观察请求；不是生产启动依赖。[OBS浏览器源说明](https://obsproject.com/kb/browser-source)。
+历史诊断本机代理8891不是生产启动依赖；OBS需使用工作台生成的房间展示URL。[OBS浏览器源说明](https://obsproject.com/kb/browser-source)。
 
 普通关注、评论、点赞的语音和画面超过2分钟不再自动播放，任务标为expired保留；礼物与打印不套用此规则。抖音转发握手只表示传输可用，收到真实新事件后才显示已连接，60秒无事件提示检查开播状态。
+
+## 当前活动部署与实播（2026-09-14最终续测）
+
+当前停播并全局暂停；打印机全部禁用，房间解绑打印机，新活动只有speech/overlay。禁止依据旧额度或旧规则重新打印。旧云队列已清空，未发送任务已取消。
+
+安装活动预设会暂停全局、禁用全部设备、禁用各房间旧规则，再按平台安装7条中/泰规则，不自动恢复动作。它是整套活动替换，不是无副作用预览。需要部署到新的安装时执行：
+
+```sh
+cd /Volumes/M2USB/Projects/ai-live-studio
+node --import tsx scripts/install-campaign.ts
+node --import tsx scripts/export-campaign.ts
+sh scripts/build-stage-app.sh
+```
+
+现有机器已安装，无需重复执行。改文案/规则使用工作台“模板/规则”页面；任务保存原版本，修改只影响新任务。展示页的奖励档位直接读取启用规则；静态JPG与HTML须另行更新，不自动随着运营编辑变化。
+
+从Finder打开 /Volumes/M2USB/Projects/ai-live-studio/var/vendor/AI Live Stage.app，粘贴后台提供的本机房间展示地址。窗口为432×768，默认自动播放；若出现语音按钮需在开播前启用。只保留一个该房间播放器。
+
+官方直播伴侣选择“窗口采集”，目标“AI Live Studio · 直播画面”，匹配竖屏画布；麦克风关闭，桌面音频启用。先本地录制并检查语音，没有通过不要推流。自己的房间地址必须填入工作台和Dycast，连接后观察真实事件再判断采集成功。场次结束关播、暂停工作台、断开采集。
+
+手机查看观众画面使用静音投影，构建入口 /Volumes/M2USB/Projects/ai-live-studio/scripts/build-phone-app.sh；依赖已安装scrcpy/adb，不自动安装或请求新权限。关闭不需要的OBS、旧浏览器播放器及重复投影，避免混音和资源浪费。自播结束后，不为补证据再次自动开播。

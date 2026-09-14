@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
+import LiveStage from "./LiveStage.vue";
 import { api } from "../api";
 import type { Job } from "../../shared/types";
 const roomId = decodeURIComponent(location.pathname.split("/")[2] || "");
@@ -14,8 +15,22 @@ let stopped = false,
   timer: ReturnType<typeof setTimeout> | undefined,
   monitor: ReturnType<typeof setInterval>;
 const handled = new Set<string>();
+const transparent =
+  new URLSearchParams(location.search).get("transparent") === "1";
+const language = ref<"zh" | "th">("zh");
+const rewards = ref<
+  Array<{
+    id: string;
+    name: string;
+    minCount: number;
+    giftIds: string[];
+    actions: string[];
+  }>
+>([]);
 type Payload = {
   jobs: Job[];
+  room: { language: string };
+  rewards: typeof rewards.value;
   settings: { speechVolume: number; speechRate: number; paused: boolean };
 };
 function scopedMedia(path: string) {
@@ -29,6 +44,12 @@ async function read() {
   const d = await api<Payload>(
     `/overlay/${encodeURIComponent(roomId)}${suffix}`,
   );
+  language.value = d.room.language === "th" ? "th" : "zh";
+  rewards.value = d.rewards || [];
+  document.title =
+    language.value === "th"
+      ? "AI Live Studio · Thai Live"
+      : "AI Live Studio · 抖音直播画面";
   const wasPaused = paused.value;
   paused.value = d.settings.paused;
   if (paused.value) audio?.pause();
@@ -123,7 +144,17 @@ onUnmounted(() => {
 });
 </script>
 <template>
-  <div class="obs-surface">
+  <LiveStage
+    v-if="!transparent"
+    :language="language"
+    :current="current"
+    :paused="paused"
+    :needs-play="needsPlay"
+    :error="error"
+    :rewards="rewards"
+    @play="play"
+  />
+  <div v-else class="obs-surface">
     <div v-if="current && !paused" class="obs-caption">
       <img
         v-if="current.avatar && scopedMedia(current.avatar)"

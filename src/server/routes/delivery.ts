@@ -22,6 +22,19 @@ export function registerDeliveryRoutes(ctx: RouteContext) {
     const room = overlayRoom(req);
     return {
       room: { name: room.name, language: room.language },
+      rewards: s
+        .list("rules")
+        .filter(
+          (r) => r.roomId === room.id && r.enabled && r.eventType === "gift",
+        )
+        .sort((a, b) => a.minCount - b.minCount)
+        .map((r) => ({
+          id: r.id,
+          name: r.name,
+          minCount: r.minCount,
+          giftIds: r.giftIds,
+          actions: r.actions,
+        })),
       jobs: s.query(
         "jobs",
         "json_extract(data,'$.roomId')=? AND json_extract(data,'$.sessionId')=? AND ((json_extract(data,'$.action')='overlay' AND json_extract(data,'$.enriched')=1 AND json_extract(data,'$.status')='pending') OR (json_extract(data,'$.action')='speech' AND json_extract(data,'$.status')='ready'))",

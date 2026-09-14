@@ -37,6 +37,9 @@ export class Store {
     this.db.exec(
       "CREATE INDEX IF NOT EXISTS jobs_status ON jobs(json_extract(data,'$.status')); CREATE INDEX IF NOT EXISTS jobs_room ON jobs(json_extract(data,'$.roomId')); CREATE INDEX IF NOT EXISTS events_room ON events(json_extract(data,'$.roomId'));",
     );
+    this.db.exec(
+      "CREATE INDEX IF NOT EXISTS events_type ON events(json_extract(data,'$.type')); CREATE INDEX IF NOT EXISTS jobs_event ON jobs(json_extract(data,'$.eventId')); CREATE INDEX IF NOT EXISTS attempts_device_time ON attempts(json_extract(data,'$.printerId'),json_extract(data,'$.at'));",
+    );
     this.seed();
   }
   query(

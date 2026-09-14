@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { WebcastGiftMessage, Gift } from "tiktok-live-proto/v3";
-import { tiktokGiftFields } from "../src/server/adapters.ts";
+import { tiktokGiftFields, platformTime } from "../src/server/adapters.ts";
 import { Store } from "../src/server/store.ts";
 import { Engine } from "../src/server/engine.ts";
 
@@ -75,4 +75,11 @@ test("legacy gift fields remain compatible and numeric zero is not an end", () =
       .streakable,
     false,
   );
+});
+
+test("platform timestamps accept millisecond v3 and second legacy values", () => {
+  assert.equal(platformTime("1789376901000"), 1789376901000);
+  assert.equal(platformTime("1789376901"), 1789376901000);
+  assert.equal(platformTime(undefined, 123), 123);
+  assert.equal(platformTime("invalid", 123), 123);
 });

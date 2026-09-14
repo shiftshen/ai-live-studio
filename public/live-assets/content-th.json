@@ -1,0 +1,109 @@
+{
+  "language": "th",
+  "copy": {
+    "title": "ไปรษณีย์แห่งความหวัง",
+    "subtitle": "ทุกชื่อมีความหมายสำหรับเรา",
+    "welcome": "ยินดีต้อนรับทุกคน",
+    "idle": "พิมพ์ “สวัสดี”\nมาทักทายกันนะคะ",
+    "note": "ร่วมพูดคุยฟรีได้เสมอ · กิจกรรมดิจิทัลในไลฟ์นี้เท่านั้น",
+    "gifts": "ของขวัญและคำขอบคุณ",
+    "unit": "ชิ้นขึ้นไป",
+    "anyGift": "ของขวัญใดก็ได้",
+    "countNote": "นับยอดสุดท้ายต่อชุด รับคำขอบคุณระดับสูงสุดครั้งเดียว จำนวนไม่ใช่ราคา",
+    "paused": "กำลังเตรียมกิจกรรม",
+    "ready": "รอข้อความใหม่",
+    "play": "เปิดเสียงไลฟ์",
+    "error": "การเชื่อมต่อขัดข้องชั่วคราว",
+    "tiers": [
+      "ขอบคุณพร้อมเรียกชื่อ",
+      "คำอวยพรเฉพาะคุณ",
+      "คำอวยพรพิเศษ"
+    ],
+    "free": "ทักทาย · ขอบคุณที่ติดตาม · พิมพ์ “อวยพร”"
+  },
+  "rules": [
+    {
+      "key": "join",
+      "name": "ต้อนรับผู้ชม",
+      "eventType": "join",
+      "minCount": 1,
+      "priority": 100,
+      "keywords": [],
+      "oncePerSession": true,
+      "cooldownSec": 60,
+      "body": "ยินดีต้อนรับคุณ {{nickname}} สู่ไปรษณีย์แห่งความหวังค่ะ"
+    },
+    {
+      "key": "follow",
+      "name": "ขอบคุณที่ติดตาม",
+      "eventType": "follow",
+      "minCount": 1,
+      "priority": 110,
+      "keywords": [],
+      "oncePerSession": true,
+      "cooldownSec": 60,
+      "body": "ขอบคุณคุณ {{nickname}} ที่ติดตามค่ะ แวะมาพูดคุยกันได้เสมอนะคะ"
+    },
+    {
+      "key": "hello",
+      "name": "ทักทาย",
+      "eventType": "comment",
+      "minCount": 1,
+      "priority": 200,
+      "keywords": [
+        "สวัสดี",
+        "hello"
+      ],
+      "oncePerSession": false,
+      "cooldownSec": 60,
+      "body": "สวัสดีค่ะคุณ {{nickname}} วันนี้เป็นอย่างไรบ้างคะ"
+    },
+    {
+      "key": "wish",
+      "name": "คำอวยพรฟรี",
+      "eventType": "comment",
+      "minCount": 1,
+      "priority": 210,
+      "keywords": [
+        "อวยพร",
+        "วันเกิด"
+      ],
+      "oncePerSession": false,
+      "cooldownSec": 60,
+      "body": "คุณ {{nickname}} ขอให้วันนี้มีรอยยิ้ม สุขภาพแข็งแรง และพบเจอเรื่องดี ๆ นะคะ"
+    },
+    {
+      "key": "gift-1",
+      "name": "ขอบคุณพร้อมเรียกชื่อ",
+      "eventType": "gift",
+      "minCount": 1,
+      "priority": 400,
+      "keywords": [],
+      "oncePerSession": false,
+      "cooldownSec": 0,
+      "body": "ขอบคุณคุณ {{nickname}} สำหรับ {{giftName}} จำนวน {{count}} ชิ้นค่ะ ยินดีที่ได้พบกันนะคะ"
+    },
+    {
+      "key": "gift-10",
+      "name": "คำอวยพรเฉพาะคุณ",
+      "eventType": "gift",
+      "minCount": 10,
+      "priority": 500,
+      "keywords": [],
+      "oncePerSession": false,
+      "cooldownSec": 0,
+      "body": "ขอบคุณคุณ {{nickname}} สำหรับ {{giftName}} จำนวน {{count}} ชิ้นค่ะ ขอให้ทุกวันมีรอยยิ้มและพบเจอสิ่งดี ๆ นะคะ"
+    },
+    {
+      "key": "gift-66",
+      "name": "คำอวยพรพิเศษ",
+      "eventType": "gift",
+      "minCount": 66,
+      "priority": 600,
+      "keywords": [],
+      "oncePerSession": false,
+      "cooldownSec": 0,
+      "body": "ขอบคุณคุณ {{nickname}} สำหรับ {{giftName}} จำนวน {{count}} ชิ้นค่ะ ขอให้สุขภาพแข็งแรง ความตั้งใจค่อย ๆ สำเร็จ และมีคนใจดีอยู่ข้าง ๆ เสมอนะคะ"
+    }
+  ]
+}

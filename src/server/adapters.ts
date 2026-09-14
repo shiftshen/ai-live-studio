@@ -2,6 +2,11 @@ import { randomUUID } from "node:crypto";
 import { Store } from "./store.ts";
 import { Engine } from "./engine.ts";
 // TikTokLiveConnection 2.4 uses v3 protobuf; legacy giftDetails is v2 only.
+export function platformTime(value: unknown, now = Date.now()) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return now;
+  return n >= 1e12 ? n : n * 1000;
+}
 export function tiktokGiftFields(d: any) {
   return {
     giftId: d.giftId ? String(d.giftId) : undefined,
@@ -107,8 +112,7 @@ export class Adapters {
               text: d.content ?? d.comment ?? "",
               ...(type === "gift" ? tiktokGiftFields(d) : {}),
               count: Math.max(1, n),
-              occurredAt:
-                Number(d.common?.createTime ?? Date.now() / 1000) * 1000,
+              occurredAt: platformTime(d.common?.createTime),
             };
             this.engine.ingest(event);
             this.update(id, {
