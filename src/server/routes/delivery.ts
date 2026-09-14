@@ -31,7 +31,13 @@ export function registerDeliveryRoutes(ctx: RouteContext) {
       )
       .get(room.id, room.sessionId) as any;
     return {
-      room: { name: room.name, language: room.language },
+      room: {
+        id: room.id,
+        name: room.name,
+        language: room.language,
+        status: room.status,
+        error: room.error,
+      },
       totals: {
         viewers: Number(totals.viewers),
         follows: Number(totals.follows),
@@ -155,6 +161,18 @@ export function registerDeliveryRoutes(ctx: RouteContext) {
         try {
           const payload = JSON.parse(raw.toString());
           if (!Array.isArray(payload)) {
+            const looksLikeEvent =
+              typeof payload?.method === "string" ||
+              typeof payload?.event === "string" ||
+              typeof payload?.eventType === "string" ||
+              typeof payload?.type === "string" ||
+              typeof payload?.msgType === "string" ||
+              typeof payload?.action === "string";
+            if (looksLikeEvent) {
+              if (!established) established = true;
+              adapters.relay(room.id, payload);
+              return;
+            }
             const number = roomAddress("douyin", room.address);
             if (String(payload.roomNum ?? payload.roomId) !== number)
               throw Error("转发房间编号不符");

@@ -64,10 +64,53 @@ test("Dycast patch fields preserve streaks and filter shares without losing late
     assert.equal(events[0].streakable, true);
     assert.equal(events[0].repeatEnd, true);
     assert.equal(events[0].count, 7);
-  } finally {
-    s.close();
-  }
-});
+      } finally {
+        s.close();
+      }
+    });
+
+    test("Dycast relay accepts single-object payload and parses like totals", () => {
+      const s = new Store(":memory:");
+      try {
+        const events: any[] = [];
+        const room = s.list("rooms").find((r: any) => r.platform === "douyin")!;
+        s.put("rooms", { ...room, status: "connected", sessionId: "s" });
+        const a = new Adapters(s, { ingest: (e: any) => events.push(e) } as any);
+        a.relay(room.id, {
+          method: "WebcastLikeMessage",
+          id: "single-like",
+          room: { likeCount: 128 },
+          user: { id: "u-liked" },
+          timestamp: Date.now(),
+          content: "给主播点赞了(128)",
+        });
+        assert.equal(events.length, 1);
+        assert.equal(events[0].type, "like");
+        assert.equal(events[0].count, 128);
+        assert.equal(events[0].userId, "u-liked");
+      } finally {
+        s.close();
+      }
+    });
+
+    test("Dycast relay supports alternate event keys for joins and follows", () => {
+      const s = new Store(":memory:");
+      try {
+        const events: any[] = [];
+        const room = s.list("rooms").find((r: any) => r.platform === "douyin")!;
+        s.put("rooms", { ...room, status: "connected", sessionId: "s" });
+        const a = new Adapters(s, { ingest: (e: any) => events.push(e) } as any);
+        a.relay(room.id, [
+          { eventType: "WebcastMemberMessage", msgId: "join-x", user: { id: "u1" } },
+          { event_type: "WebcastSocialMessage", msg_id: "follow-x", eventType: "follow", user: { id: "u2" }, msgId: "follow-x" },
+        ]);
+        const types = events.map((e) => e.type).sort();
+        assert.deepEqual(types, ["follow", "join"]);
+        assert.equal(events.find((e) => e.sourceId === "follow-x")?.sourceId, "follow-x");
+      } finally {
+        s.close();
+      }
+    });
 
 test("address changes disconnect and reset session capabilities; ordinary edits preserve session", async () => {
   const x = await fixture();

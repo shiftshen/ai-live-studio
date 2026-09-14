@@ -40,6 +40,80 @@ export class Adapters {
     public s: Store,
     public engine: Engine,
   ) {}
+
+  normalizeDycastId(d: any) {
+    const raw =
+      d.id ??
+      d.msgId ??
+      d.msg_id ??
+      d.messageId ??
+      d.eventId ??
+      d.event_id ??
+      null;
+    if (typeof raw === "string" || typeof raw === "number") return String(raw);
+    return null;
+  }
+
+  normalizeDycastNumber(value: unknown, fallback = 1) {
+    const n = Number(value);
+    if (!Number.isFinite(n) || n <= 0) return fallback;
+    return n;
+  }
+
+  private extractRelayMethod(message: any) {
+    const raw =
+      message.method ??
+      message.event ??
+      message.eventType ??
+      message.type ??
+      message.action ??
+      message.message_type ??
+      message.msgType ??
+      message.event_type ??
+      null;
+    if (typeof raw === "string") return raw.trim();
+    return "";
+  }
+
+  private extractDycastLikeCount(d: any, fallback = 1) {
+    const fromText = (typeof d.content === "string"
+      ? d.content.match(/[(（]?\s*([0-9]+)\s*[）)]?$/)?.[1]
+      : null) ??
+      (typeof d.description === "string"
+        ? d.description.match(/[(（]?\s*([0-9]+)\s*[）)]?$/)?.[1]
+        : null);
+    if (fromText) return this.normalizeDycastNumber(Number(fromText), fallback);
+
+    return this.normalizeDycastNumber(
+      d.room?.likeCount ??
+        d.likeCount ??
+        d.totalLikeCount ??
+        d.count ??
+        d.like_count ??
+        d.params?.likeCount ??
+        d.data?.likeCount ??
+        fallback,
+      fallback,
+    );
+  }
+
+  private normalizeDycastMessagePayload(message: any) {
+    if (Array.isArray(message)) return message.filter((d) => d && typeof d === "object");
+
+    if (!message || typeof message !== "object") return [];
+
+    const method = this.extractRelayMethod(message);
+    if (method) return [message];
+
+    return [];
+  }
+
+  normalizeDycastTime(value: unknown, now = Date.now()) {
+    const n = Number(value);
+    if (!Number.isFinite(n) || n <= 0) return now;
+    return n >= 1e12 ? n : n * 1000;
+  }
+
   update(id: string, patch: any) {
     const room = this.s.get("rooms", id);
     if (room) this.s.put("rooms", { ...room, ...patch });
@@ -173,14 +247,17 @@ export class Adapters {
       }
     }
   }
+
   relay(id: string, message: any) {
     const room = this.s.get("rooms", id);
-    if (!room || room.platform !== "douyin") throw Error("抖音房间不存在");
-    if (!Array.isArray(message)) return;
+    if (!room) throw Error("抖音房间不存在");
+    if (room.platform !== "douyin") throw Error("抖音房间不存在");
+    const normalized = this.normalizeDycastMessagePayload(message);
+    if (!normalized.length) return;
     this.s.setting("relay-shape:" + id, {
       at: Date.now(),
-      length: message.length,
-      sample: message
+      length: normalized.length,
+      sample: normalized
         .filter((d) => d && typeof d === "object")
         .slice(0, 3)
         .map((d) => ({
@@ -191,51 +268,87 @@ export class Adapters {
           userIdPresent: !!d.user?.id,
         })),
     });
-    for (const d of message) {
+    for (const d of normalized) {
       if (!d || typeof d !== "object") continue;
       if (
-        d.method === "WebcastSocialMessage" &&
+        String(d.method) === "WebcastSocialMessage" &&
         !(d.socialAction === "follow" || String(d.action) === "1")
       )
         continue;
-      const type = (
+      const typeMap =
         {
           WebcastChatMessage: "comment",
           WebcastEmojiChatMessage: "comment",
           WebcastGiftMessage: "gift",
+          WebcastGift: "gift",
           WebcastLikeMessage: "like",
+          WebcastLike: "like",
           WebcastMemberMessage: "join",
+          WebcastMember: "join",
+          WebcastRoomUserSeqMessage: "join",
           WebcastSocialMessage: "follow",
-        } as any
-      )[d.method];
-      if (!type || !d.id) continue;
+          follow: "follow",
+          member: "join",
+          like: "like",
+          comment: "comment",
+          chat: "comment",
+          gift: "gift",
+        } as any;
+      const mappedType =
+        typeMap[d.method] ??
+        typeMap[d.event] ??
+        typeMap[d.eventType] ??
+        typeMap[d.event_type] ??
+        typeMap[d.type] ??
+        typeMap[d.action] ??
+        typeMap[d.msgType] ??
+        undefined;
+      if (!mappedType) continue;
+      const gift = d.gift ?? d?.data?.gift ?? {};
+      const sourceId = this.normalizeDycastId(d) || randomUUID();
+      const occurredAt = this.normalizeDycastTime(
+        d.timestamp ?? d.eventTime ?? d.createTime,
+      );
+      const method = String(d.method || d.event || d.eventType || "").toLowerCase();
+      const socialFollow =
+        d.socialAction === "follow" ||
+        String(d.action) === "1" ||
+        method.includes("follow") ||
+        String(d.eventType).includes("follow") ||
+        String(d.type) === "social" ||
+        d.msgType === "WebcastSocialMessage";
+      if (mappedType === "follow" && !socialFollow && !d.text && !d.comment && !d.content)
+        continue;
+      const count =
+        mappedType === "like"
+          ? this.extractDycastLikeCount(d, 1)
+          : mappedType === "gift"
+            ? this.normalizeDycastNumber(gift.count, 1)
+            : this.normalizeDycastNumber(d.count, 1);
+      const identityReliable = !!d.user?.id;
+      const eventUserId =
+        d.user?.id ? String(d.user.id) : `unidentified:${sourceId}`;
       try {
-        const gift = d.gift ?? {};
         this.engine.ingest({
           roomId: id,
           sessionId: room.sessionId,
           platform: "douyin",
-          sourceId: String(d.id),
-          userId: d.user?.id ? String(d.user.id) : `unidentified:${d.id}`,
-          identityReliable: !!d.user?.id,
+          sourceId,
+          userId: eventUserId,
+          identityReliable,
           nickname: d.user?.name ?? "观众",
           avatar: d.user?.avatar,
-          type,
+          type: mappedType,
           origin: "live",
           text: d.content ?? "",
           giftId: gift.id ? String(gift.id) : undefined,
           giftName: gift.name,
-          count: Math.max(
-            1,
-            Number(
-              type === "like" ? (d.room?.likeCount ?? 1) : (gift.count ?? 1),
-            ),
-          ),
+          count: Math.max(1, count),
           streakId: gift.groupId ? String(gift.groupId) : undefined,
-          streakable: type === "gift" && Number(gift.type) === 1,
+          streakable: mappedType === "gift" && Number(gift.type) === 1,
           repeatEnd: Number(gift.repeatEnd) === 1,
-          occurredAt: d.timestamp ?? Date.now(),
-          historical: d.timestamp ? d.timestamp < Date.now() - 60000 : false,
+          occurredAt,
+          historical: occurredAt < Date.now() - 60000,
         });
         this.update(id, {
           ...(!d.timestamp || d.timestamp >= Date.now() - 60000
@@ -243,7 +356,7 @@ export class Adapters {
             : {}),
           capabilities: {
             ...this.s.get("rooms", id).capabilities,
-            [type]: "observed",
+            [mappedType]: "observed",
             identity: d.user?.id ? "observed" : "unverified",
           },
         });
