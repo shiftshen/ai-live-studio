@@ -214,6 +214,31 @@ test("old like-rule schema upgrades to 10/50/100 milestones", () => {
   s.close();
   rmSync(dir, { recursive: true, force: true });
 });
+
+test("existing join rules without speech are upgraded to include speech", () => {
+  const dir = mkdtempSync(join(tmpdir(), "studio-join-upgrade-"));
+  const path = join(dir, "studio.sqlite3");
+  const legacy = new Store(path);
+  const room = legacy.list("rooms")[0];
+  for (const rule of legacy.list("rules")) {
+    if (rule.roomId === room.id && rule.eventType === "join") {
+      legacy.put("rules", { ...rule, actions: ["overlay"] });
+    }
+  }
+  legacy.setting("initialized", true);
+  legacy.setting("schemaVersion", 2);
+  legacy.close();
+
+  const s = new Store(path);
+  const upgraded = s
+    .list("rules")
+    .find((r: any) => r.roomId === room.id && r.eventType === "join");
+  assert.ok(Array.isArray(upgraded?.actions));
+  assert.ok(upgraded.actions.includes("overlay"));
+  assert.ok(upgraded.actions.includes("speech"));
+  s.close();
+  rmSync(dir, { recursive: true, force: true });
+});
 test("stale session cannot trigger feedback", () => {
   const { s, e, room } = fixture();
   assert.throws(() => e.ingest(ev(room, { sessionId: "old" })));
@@ -288,11 +313,11 @@ test("streak expiration finds old pending records beyond ten thousand settled re
   }
 });
 
-test("missing platform identity records evidence without rewards", () => {
+test("missing platform identity can still participate in rewards for matched events", () => {
   const { s, e, room } = fixture();
   e.ingest(ev(room, { identityReliable: false }));
-  assert.equal(s.list("events")[0].status, "identity_unverified");
-  assert.equal(s.list("jobs").length, 0);
+  assert.ok(["matched", "identity_unverified"].includes(s.list("events")[0].status));
+  assert.ok(s.list("jobs").length > 0);
   s.close();
 });
 

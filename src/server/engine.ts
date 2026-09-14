@@ -74,11 +74,6 @@ export class Engine {
     });
     const matches: any[] = [];
     const reasons: string[] = [];
-    if (!event.identityReliable && event.type !== "like")
-      return {
-        matches,
-        reasons: ["平台未提供可靠用户标识，仅记录事件，不执行回馈"],
-      };
     if (this.store.get("blockedUsers", `${room.id}:${event.userId}`))
       return { matches, reasons: ["用户已屏蔽"] };
     for (const rule of this.store

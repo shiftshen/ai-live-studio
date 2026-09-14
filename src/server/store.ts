@@ -282,11 +282,13 @@ export class Store {
             continueMatching: false,
             templateId: `${spec.template}-zh`,
             actions:
-              spec.eventType === "join" || spec.eventType === "like"
-                ? spec.actions ?? ["overlay"]
-                : spec.eventType === "follow"
-                  ? ["overlay", "speech"]
-                  : ["print", "speech", "overlay"],
+              spec.eventType === "join"
+                ? spec.actions ?? ["overlay", "speech"]
+                : spec.eventType === "like"
+                  ? spec.actions ?? ["overlay"]
+                  : spec.eventType === "follow"
+                    ? ["overlay", "speech"]
+                    : ["print", "speech", "overlay"],
             ai: spec.ai ?? false,
             avatar: spec.avatar ?? spec.eventType === "gift",
             version: 1,
@@ -298,6 +300,22 @@ export class Store {
     if (schema < 2) {
       this.upgradeLikeRules();
       this.setting("schemaVersion", 2);
+    }
+    if (schema < 3) {
+      this.upgradeJoinSpeech();
+      this.setting("schemaVersion", 3);
+    }
+  }
+  upgradeJoinSpeech() {
+    for (const rule of this.list("rules")) {
+      if (rule.eventType !== "join") continue;
+      const actions = Array.isArray(rule.actions) ? rule.actions : [];
+      if (actions.includes("overlay") && !actions.includes("speech")) {
+        this.put("rules", {
+          ...rule,
+          actions: Array.from(new Set([...actions, "speech"])),
+        });
+      }
     }
   }
   upgradeLikeRules() {
