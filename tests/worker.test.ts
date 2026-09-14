@@ -137,3 +137,37 @@ test("printer font channel is device-configured for every content language", asy
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("stale ordinary screen and speech feedback expires without dropping gift or print work", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "studio-expiry-"));
+  const s = new Store(":memory:");
+  const w = new Worker(s, new Secrets(dir), dir);
+  try {
+    const old = Date.now() - 180000;
+    for (const type of ["follow", "comment", "like", "gift"]) {
+      s.put("events", { id: type, type, receivedAt: old });
+      for (const action of ["speech", "overlay", "print"]) {
+        s.put("jobs", {
+          id: `${type}-${action}`,
+          eventId: type,
+          action,
+          status: action === "overlay" ? "pending" : "ready",
+          enriched: true,
+          createdAt: old,
+        });
+      }
+    }
+    await w.tick();
+    for (const type of ["follow", "comment", "like"]) {
+      assert.equal(s.get("jobs", `${type}-speech`).status, "expired");
+      assert.equal(s.get("jobs", `${type}-overlay`).status, "expired");
+      assert.equal(s.get("jobs", `${type}-print`).status, "ready");
+    }
+    assert.equal(s.get("jobs", "gift-speech").status, "ready");
+    assert.equal(s.get("jobs", "gift-overlay").status, "pending");
+  } finally {
+    await w.stop();
+    s.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

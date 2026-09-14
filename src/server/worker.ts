@@ -64,6 +64,19 @@ export class Worker {
       )
       .run(Date.now() - 120000);
 
+    // Offline OBS must not play hours-old ordinary interactions on reconnect.
+    // Gift feedback and physical print work retain their explicit recovery flow.
+    this.store.db
+      .prepare(
+        `UPDATE jobs SET data=json_set(data,
+      '$.status','expired','$.error','普通画面或语音已超过2分钟，保留记录不再播放',
+      '$.updatedAt',?) WHERE json_extract(data,'$.status') IN ('pending','ready')
+      AND json_extract(data,'$.action') IN ('speech','overlay') AND at<?
+      AND json_extract(data,'$.eventId') IN (SELECT id FROM events
+        WHERE json_extract(data,'$.type') IN ('follow','comment','like'))`,
+      )
+      .run(Date.now(), Date.now() - 120000);
+
     const candidates = this.store.db
       .prepare(
         `WITH eligible AS (

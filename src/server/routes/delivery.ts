@@ -130,7 +130,11 @@ export function registerDeliveryRoutes(ctx: RouteContext) {
             if (String(payload.roomNum ?? payload.roomId) !== number)
               throw Error("转发房间编号不符");
             established = true;
-            adapters.update(room.id, { status: "connected", error: null });
+            adapters.update(room.id, {
+              status: "waiting_events",
+              lastEventAt: null,
+              error: "转发已连接，等待真实直播事件",
+            });
             return;
           }
           if (!established) throw Error("请先发送直播间信息");

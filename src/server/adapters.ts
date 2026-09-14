@@ -155,6 +155,20 @@ export class Adapters {
       );
     }
   }
+  refreshRelayHealth(now = Date.now()) {
+    for (const room of this.s.list("rooms")) {
+      if (
+        room.platform === "douyin" &&
+        room.status === "connected" &&
+        now - (room.lastEventAt ?? 0) > 60000
+      ) {
+        this.update(room.id, {
+          status: "waiting_events",
+          error: "转发在线但60秒未收到新事件，请检查主播是否下播",
+        });
+      }
+    }
+  }
   relay(id: string, message: any) {
     const room = this.s.get("rooms", id);
     if (!room || room.platform !== "douyin") throw Error("抖音房间不存在");
@@ -220,6 +234,9 @@ export class Adapters {
           historical: d.timestamp ? d.timestamp < Date.now() - 60000 : false,
         });
         this.update(id, {
+          ...(!d.timestamp || d.timestamp >= Date.now() - 60000
+            ? { status: "connected", error: null, lastEventAt: Date.now() }
+            : {}),
           capabilities: {
             ...this.s.get("rooms", id).capabilities,
             [type]: "observed",

@@ -408,3 +408,40 @@ test("retry and reprint share active queue limits while held jobs can be release
     await x.done();
   }
 });
+
+test("relay transport without recent live events is not reported as a live room", () => {
+  const s = new Store(":memory:");
+  try {
+    const room = s.list("rooms").find((r: any) => r.platform === "douyin");
+    s.put("rooms", {
+      ...room,
+      status: "connected",
+      lastEventAt: Date.now() - 120000,
+    });
+    const a = new Adapters(s, { ingest: () => {} } as any);
+    a.refreshRelayHealth();
+    assert.equal(s.get("rooms", room.id).status, "waiting_events");
+    a.relay(room.id, [
+      {
+        method: "WebcastChatMessage",
+        id: "historic",
+        user: { id: "u" },
+        content: "old",
+        timestamp: Date.now() - 120000,
+      },
+    ]);
+    assert.equal(s.get("rooms", room.id).status, "waiting_events");
+    a.relay(room.id, [
+      {
+        method: "WebcastChatMessage",
+        id: "fresh",
+        user: { id: "u" },
+        content: "new",
+        timestamp: Date.now(),
+      },
+    ]);
+    assert.equal(s.get("rooms", room.id).status, "connected");
+  } finally {
+    s.close();
+  }
+});

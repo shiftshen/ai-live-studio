@@ -137,3 +137,15 @@ TikTok公开房间07:16:21—07:18:37收到6条live礼物消息，分属3个分�
 ## GitHub云端验证通过
 
 公开仓库提交9e936e4的[GitHub Actions运行34820057538](https://github.com/shiftshen/ai-live-studio/actions/runs/34820057538)于2026-09-14 07:55:06 UTC完成：依赖安装、类型检查、50/50测试（失败0）、生产构建全部成功。此前私有仓库账单限制导致未启动的记录仍保留；未修改账单或购买额度。云端通过只证明源码验证，不替代尚未结束的持续观察及现场设备验收。
+
+## 解锁后的实际续测与新修复
+
+2026-09-14约08:37 UTC用户解锁后，已实际操作手机相机：可见泰语感谢小票、昵称、数量及中文“礼物”占位，同昵称重复小票也可见。证据 /Volumes/M2USB/Projects/ai-live-studio/var/evidence/printer-after-unlock-close.png。仅确认整体纸面与重复现象，未逐张映射订单；修复后新增打印0张，额度仍10/10。
+
+两小时原报告已结束：7200秒、121采样点、重启0，服务存活passed=true；双平台全程passed=false，抖音末段断开。Dycast现场随后显示主播已下播。抖音10885条（评论432、关注69、进场9331、点赞1053），TikTok5379条（评论140、关注166、进场4883、点赞182、礼物8）。采样总计16264条，旧礼物字段缺陷仍适用于这些旧事件。内存RSS起始196000KB、最终101424KB、最大196000KB；speech ready最终191，不能认定全部队列稳定通过。
+
+已部署TikTok v3礼物修复；新增普通非礼物画面/语音2分钟过期，保留可追溯记录，保护礼物和打印任务；实际约200个普通语音转expired、ready降到9。抖音握手改为waiting_events，新事件才显示connected，60秒无事件提示检查开播状态，历史批次不误报在线。52/52测试、类型检查、前端构建通过；相关改动为src/server/worker.ts、src/server/adapters.ts、src/server/routes/delivery.ts、src/server/app.ts、src/client/api.ts及对应回归测试。
+
+OBS浏览器黑屏仍复现：正确URL、官方远程诊断、新缓存均未解决；30.2.3对照未完成可用验证；临时窗口采集能捕获窗口但未完成准确展示窗口配置，已删除临时源。恢复32.2.2及正确展示地址，无公开推流。OBS可听音画、动态头像、修复后真实礼物去重仍不勾选通过。
+
+新的30分钟观察见 /Volumes/M2USB/Projects/ai-live-studio/var/evidence/acceptance-after-unlock-connected/report.json，未完成前不宣称通过。普通Chrome的播放ACK只属浏览器证据。

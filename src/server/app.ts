@@ -135,6 +135,7 @@ export async function createApp(
     worker.start();
     maintenance = setInterval(() => {
       engine.expireStreaks();
+      adapters.refreshRelayHealth();
       const cfg = s.setting("config");
       const now = Date.now();
       for (const [table, days] of [

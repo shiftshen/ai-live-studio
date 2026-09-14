@@ -33,6 +33,7 @@ export const labels: Record<string, string> = {
   unverified: "未验证",
   observed: "已收到事件",
   connecting: "连接中",
+  waiting_events: "转发在线，等待事件",
   waiting_relay: "等待转发",
   join: "进入直播",
   follow: "关注",
