@@ -1,0 +1,103 @@
+diff --git a/src/core/dycast.ts b/src/core/dycast.ts
+index ff5068d..80a8fee 100644
+--- a/src/core/dycast.ts
++++ b/src/core/dycast.ts
+@@ -54,6 +54,7 @@ async function decompressGzip(data: Uint8Array): Promise<Uint8Array> {
+ }
+ 
+ import { fetchUser, getImInfo, getLiveInfo } from './request';
++import { publicUserId, socialAction } from './publicFields';
+ import { getSignature } from './signature';
+ import { createSocket, getWsBase, type DySocket } from '@/platform/websocket';
+ // import { logUserCast } from '@/utils/debugUtil';
+@@ -143,6 +144,8 @@ export interface CastGift {
+   icon?: string;
+   // 数量 repeat_count | combo_count
+   count?: number | string;
++  // 服务端连击组，保持字符串精度
++  groupId?: string;
+   // 礼物消息可能重复发送，0 表示第一次，未重复
+   repeatEnd?: number;
+ }
+@@ -177,6 +180,9 @@ export interface DyMessage {
+   room?: LiveRoom;
+   rank?: LiveRankItem[];
+   timestamp?: number;
++  // 原始社交动作及明确分类，未知动作不推断为关注
++  action?: string;
++  socialAction?: 'follow' | 'share' | 'unknown';
+ }
+ 
+ export enum CastMethod {
+@@ -804,7 +810,7 @@ export class DyCast {
+           data.method = CastMethod.GIFT;
+           data.user = this._getCastUser(message.user);
+           data.toUser = this._getCastUser(message.toUser);
+-          data.gift = this._getCastGift(message.gift, message.repeatCount || message.comboCount, message.repeatEnd);
++          data.gift = this._getCastGift(message.gift, message.repeatCount || message.comboCount, message.repeatEnd, message.groupId);
+           break;
+         case CastMethod.LIKE:
+           message = d.like.decodeLikeMessage(payload);
+@@ -824,8 +830,10 @@ export class DyCast {
+           message = d.social.decodeSocialMessage(payload);
+           data.method = CastMethod.SOCIAL;
+           data.user = this._getCastUser(message.user);
+-          data.content = '关注了主播';
+-          data.room = { followCount: message.followCount };
++          data.action = message.action;
++          data.socialAction = socialAction(message.action);
++          data.content = data.socialAction === 'follow' ? '关注了主播' : data.socialAction === 'share' ? '分享了直播间' : '社交互动';
++          if (data.socialAction === 'follow') data.room = { followCount: message.followCount };
+           break;
+         case CastMethod.EMOJI_CHAT:
+           message = d.chat.decodeEmojiChatMessage(payload);
+@@ -915,7 +923,7 @@ export class DyCast {
+   private _getCastUser(data?: User): CastUser | undefined {
+     if (!data) return void 0;
+     return {
+-      id: data.secUid,
++      id: publicUserId(data),
+       name: data.nickname,
+       gender: data.gender,
+       avatar: data.avatarThumb?.urlList?.[0]
+@@ -927,7 +935,7 @@ export class DyCast {
+    * @param data
+    * @returns
+    */
+-  private _getCastGift(data?: GiftStruct, count?: string, end?: number): CastGift | undefined {
++  private _getCastGift(data?: GiftStruct, count?: string, end?: number, groupId?: string): CastGift | undefined {
+     if (!data) return void 0;
+     return {
+       id: data.id,
+@@ -937,7 +945,8 @@ export class DyCast {
+       desc: data.describe,
+       icon: data.image?.urlList?.[0],
+       count: count,
+-      repeatEnd: end
++      repeatEnd: end,
++      groupId
+     };
+   }
+ 
+diff --git a/src/core/publicFields.ts b/src/core/publicFields.ts
+new file mode 100644
+index 0000000..2f21773
+--- /dev/null
++++ b/src/core/publicFields.ts
+@@ -0,0 +1,16 @@
++/** 只使用平台公开的真实标识；缺失时保持匿名，不从昵称生成身份。 */
++export function publicUserId(user: { secUid?: string; id?: string; idStr?: string }): string | undefined {
++  const secUid = user.secUid?.trim();
++  if (secUid && !/^0+$/.test(secUid)) return secUid;
++  // 当前 1.4.1 User 解码器只有 id；idStr 仅兼容未来解码器。
++  for (const value of [user.idStr, user.id]) {
++    const id = value?.trim();
++    if (id && /^[0-9]+$/.test(id) && !/^0+$/.test(id)) return id;
++  }
++  return undefined;
++}
++
++/** SocialMessage.action 是 int64 字符串；其他值原样保留为未知。 */
++export function socialAction(action?: string): 'follow' | 'share' | 'unknown' {
++  return action === '1' ? 'follow' : action === '2' ? 'share' : 'unknown';
++}

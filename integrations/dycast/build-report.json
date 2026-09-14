@@ -1,0 +1,25 @@
+{
+  "verifiedAt": "2026-09-14T06:18:16.594939+00:00",
+  "upstream": "https://github.com/qinant/dycast-desktop",
+  "revision": "70050e27092fc726e3f7c84339b0edfd36d70130",
+  "license": "MIT",
+  "app": "/Volumes/M2USB/Projects/ai-live-studio/var/vendor/Dycast AI Live Studio.app",
+  "binarySha256": "55a9384ffe7819d2db8e8112722c75d7ddc5e9276f5898e429be31e3e91e2d4f",
+  "architecture": "arm64",
+  "bundleIdentifier": "local.ai-live-studio.dycast",
+  "signature": "ad-hoc, codesign --verify --deep --strict passed",
+  "appleNotarized": false,
+  "tests": {
+    "behavior": 15,
+    "adapterWiring": 3,
+    "realProtobufRoundtripAssertions": 6,
+    "typecheck": "passed",
+    "viteProductionBuild": "passed",
+    "rustReleaseBundle": "passed",
+    "fullBuildScriptExitCode": 0
+  },
+  "buildLog": "/Volumes/M2USB/Projects/ai-live-studio/var/build/dycast-build-verified.log",
+  "launched": true,
+  "liveEventValidation": "Launched on 2026-09-14; authenticated relay received real comment/join/like/follow events with reliable numeric user IDs. Real gift/group end not observed yet.",
+  "fieldBoundary": "Pinned User decoder has id:string and secUid:string, no idStr. Missing real IDs remain missing. secUid/numeric identity aliases not joined."
+}

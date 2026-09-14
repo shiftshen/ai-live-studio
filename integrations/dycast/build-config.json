@@ -1,0 +1,15 @@
+{
+  "productName": "Dycast AI Live Studio",
+  "identifier": "local.ai-live-studio.dycast",
+  "bundle": {
+    "createUpdaterArtifacts": false,
+    "targets": [
+      "app"
+    ]
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": []
+    }
+  }
+}
