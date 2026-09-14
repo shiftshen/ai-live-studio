@@ -41,3 +41,7 @@ main是清理后的首次发布历史，原codex/initial-implementation分支仅
 TikTok在07:16:21—07:18:37收到6条live礼物消息，3个分组各两条，5个打印任务有不同providerId及completed回执，第6个因额度10张用尽blocked。不能称为5笔独立礼物或完整可靠闭环：原适配器仍读v2 giftDetails和布尔repeatEnd，当前连接器2.4.4直接发v3 gift.type/name和数字repeatEnd，丢失连送属性。已修复源码并新增真实protobuf编码/解码→规则引擎回归，开始/结束/重复结束只生成一组动作；50/50测试、类型检查、构建通过。此修复尚未部署，运行态仍有该缺陷但硬额度阻止继续打印。原始记录保留，禁止改写历史为通过。
 
 本机证据 /Volumes/M2USB/Projects/ai-live-studio/var/evidence/live-print-audit.json。锁屏后这5张没有纸面证据，真实连送正确性仍待修复部署后验证。用户已明确要求并核验GitHub PUBLIC；心跳提示已同步。队列speech ready持续增加、OBS无消费者，完整队列稳定性不能仅凭服务无重启通过。
+
+## GitHub云端验证通过
+
+公开仓库提交9e936e4的[GitHub Actions运行34820057538](https://github.com/shiftshen/ai-live-studio/actions/runs/34820057538)于2026-09-14 07:55:06 UTC完成：依赖安装、类型检查、50/50测试（失败0）、生产构建全部成功。此前私有仓库账单限制导致未启动的记录仍保留；未修改账单或购买额度。云端通过只证明源码验证，不替代尚未结束的持续观察及现场设备验收。
