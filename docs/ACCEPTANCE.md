@@ -64,3 +64,9 @@ Mac锁屏阻止后续CUA手机/OBS操作。没有尝试绕过锁屏。开发、�
 - 越权：管理员设备绑定及补打、操作员房间范围、只读角色、OBS/接入/管理令牌分离；测试通过。
 - 契约漂移：修复TikTok正文content和Dycast真实ID/groupId；缺失字段继续标记不可靠，不猜数据。
 - 密钥：凭据与原始证据仅在var；交付前扫描源码及历史，不提交真实令牌、序列号或打印密钥。
+
+## GitHub交付
+
+源码已推送私有仓库[shiftshen/ai-live-studio](https://github.com/shiftshen/ai-live-studio)，默认分支main。48/48本地测试、类型检查通过。首次[GitHub检查](https://github.com/shiftshen/ai-live-studio/actions/runs/34814961125)未执行任何测试步骤：GitHub报告账户支付失败或消费额度限制。没有修改账单或购买额度，不能把这次未启动说成云端通过，也不能归因于代码测试失败。
+
+后台持续验收结束后将自动回查报告、更新文档并再次推送。原始纸面、设备秘密和直播数据不上传。后续现场恢复说明见`/Volumes/M2USB/Projects/ai-live-studio/docs/NEXT-SESSION.md`。
