@@ -127,12 +127,12 @@ test("like milestones 10/50/100 each trigger expected action sets", () => {
   assert.equal(s.list("jobs").length, 0);
   e.ingest({ ...base, sourceId: "l10", count: 10 });
   assert.equal(s.list("jobs").length, 2);
-  e.ingest({ ...base, sourceId: "l10-b", count: 10 });
-  assert.equal(s.list("jobs").length, 2);
-  e.ingest({ ...base, sourceId: "l50", count: 50 });
+  e.ingest({ ...base, sourceId: "l40", count: 40 });
   assert.equal(s.list("jobs").length, 4);
+  e.ingest({ ...base, sourceId: "l50", count: 50 });
+  assert.equal(s.list("jobs").length, 6);
   e.ingest({ ...base, sourceId: "l100", count: 100 });
-  assert.equal(s.list("jobs").length, 7);
+  assert.equal(s.list("jobs").length, 9);
   const actions = s
     .list("jobs")
     .map((j: any) => j.action)
@@ -141,7 +141,9 @@ test("like milestones 10/50/100 each trigger expected action sets", () => {
     "overlay",
     "overlay",
     "overlay",
+    "overlay",
     "print",
+    "speech",
     "speech",
     "speech",
     "speech",

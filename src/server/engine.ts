@@ -33,6 +33,31 @@ export function render(body: string, event: any) {
     )
     .slice(0, 400);
 }
+function aggregateLike(eventCount: number, prior: any, ruleMinCount: number) {
+  const raw = Math.max(1, Number(eventCount) || 1);
+  const priorRaw = Number(prior?.likeRawCount);
+  const priorMilestone = Number(prior?.milestone);
+  const priorTotalFromRaw = Number(prior?.likeTotalCount);
+  const priorTotal = Number.isFinite(priorTotalFromRaw)
+    ? priorTotalFromRaw
+    : Number.isFinite(priorMilestone)
+      ? priorMilestone * ruleMinCount
+      : NaN;
+  if (!Number.isFinite(priorRaw) || !Number.isFinite(priorTotal)) {
+    return {
+      raw,
+      total: raw,
+      milestone: Math.floor(raw / ruleMinCount),
+    };
+  }
+  const delta = raw > priorRaw ? raw - priorRaw : raw;
+  const total = Math.max(priorTotal + delta, priorTotal);
+  return {
+    raw,
+    total,
+    milestone: Math.floor(total / ruleMinCount),
+  };
+}
 export class Engine {
   constructor(public store: Store) {}
   preview(raw: any) {
@@ -72,15 +97,24 @@ export class Engine {
       )
         continue;
       if (rule.giftIds.length && !rule.giftIds.includes(event.giftId)) continue;
-      if (event.count < rule.minCount) continue;
-      const ck = `${room.id}:${room.sessionId}:${rule.id}:${event.type === "like" ? "all" : event.userId}`;
+      const ck = `${room.id}:${room.sessionId}:${rule.id}:${
+        event.type === "like" ? "all" : event.userId
+      }`;
       const prior = this.store.get("cooldowns", ck);
+      const isLike = event.type === "like";
+      const likeState = isLike
+        ? aggregateLike(event.count, prior, rule.minCount)
+        : null;
+      const normalizedEvent = isLike
+        ? { ...event, count: likeState?.total ?? event.count }
+        : event;
+      if (!isLike && event.count < rule.minCount) continue;
+      if (isLike && (likeState?.milestone ?? 0) < 1) continue;
       if (
         prior &&
         (rule.oncePerSession ||
           Date.now() - prior.at < rule.cooldownSec * 1000 ||
-          (event.type === "like" &&
-            Math.floor(event.count / rule.minCount) <= prior.milestone))
+          (isLike && prior.milestone >= (likeState?.milestone ?? 0)))
       ) {
         reasons.push(`${rule.name}：冷却或本场已触发`);
         continue;
@@ -103,11 +137,12 @@ export class Engine {
       matches.push({
         ruleId: rule.id,
         name: rule.name,
-        content: render(template.body, event),
+        content: render(template.body, normalizedEvent),
         actions: rule.actions,
         reason: "条件匹配",
         rule,
         template,
+        likeState,
         cooldownKey: ck,
         language: lang,
       });
@@ -203,12 +238,14 @@ export class Engine {
       const result = skip ? { matches: [], reasons: [] } : this.preview(event);
       const jobs: any[] = [];
       for (const match of result.matches) {
-        const { rule, template } = match;
+        const { rule, template, likeState } = match;
         this.store.put("cooldowns", {
           id: match.cooldownKey,
           at: Date.now(),
           roomId: room.id,
-          milestone: Math.floor(event.count / rule.minCount),
+          likeRawCount: likeState?.raw,
+          likeTotalCount: likeState?.total ?? event.count,
+          milestone: likeState?.milestone ?? Math.floor(event.count / rule.minCount),
         });
         for (const action of rule.actions) {
           const jid = createHash("sha256")
