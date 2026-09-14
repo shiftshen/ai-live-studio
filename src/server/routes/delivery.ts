@@ -169,6 +169,16 @@ export function registerDeliveryRoutes(ctx: RouteContext) {
               typeof payload?.msgType === "string" ||
               typeof payload?.action === "string";
             if (looksLikeEvent) {
+              const expectedRoom = roomAddress("douyin", room.address);
+              const inboundRoom =
+                payload.roomNum ??
+                payload.roomId ??
+                payload.room_id ??
+                payload.room?.roomId ??
+                payload.room?.room_num ??
+                payload.room?.roomID;
+              if (inboundRoom && String(inboundRoom) !== expectedRoom)
+                throw Error("转发房间编号不符");
               if (!established) established = true;
               adapters.relay(room.id, payload);
               return;
