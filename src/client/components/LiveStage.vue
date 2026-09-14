@@ -142,8 +142,10 @@ const media = computed(() => {
 </template>
 <style scoped>
 .live-hud {
-  --panel: rgba(8, 12, 15, 0.82);
+  --panel: rgba(6, 10, 16, 0.78);
+  --panel-soft: rgba(255, 255, 255, 0.09);
   --hot: #ff315f;
+  --accent: #00e0a3;
   position: relative;
   width: 100%;
   height: 100dvh;
@@ -151,7 +153,12 @@ const media = computed(() => {
   overflow: hidden;
   background: transparent;
   color: #fff;
-  font-family: "PingFang SC", "Noto Sans Thai", sans-serif;
+  font-family:
+    "Inter",
+    "PingFang SC",
+    "Noto Sans Thai",
+    "Segoe UI",
+    sans-serif;
   text-shadow: 0 1px 3px #000;
   padding: 18px;
   box-sizing: border-box;
@@ -160,9 +167,11 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--panel);
-  border-left: 5px solid var(--hot);
-  padding: 10px 12px;
+  background: linear-gradient(90deg, var(--hot) 0%, #c40f4f 40%, var(--panel) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 12px;
+  padding: 11px 12px 10px;
+  box-shadow: 0 14px 28px #0008;
 }
 .brand {
   display: flex;
@@ -176,15 +185,18 @@ header {
   display: grid;
 }
 .brand b {
-  font-size: 19px;
+  font-size: 22px;
+  letter-spacing: 0.04em;
 }
 .brand small {
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: 2px;
   color: #c9d2d4;
+  text-transform: uppercase;
 }
 .live-state {
   font-size: 11px;
+  font-weight: 700;
   color: #6ef2b1;
 }
 .live-state.paused {
@@ -192,28 +204,36 @@ header {
 }
 .reward-rail {
   position: absolute;
-  left: 18px;
-  top: 92px;
-  width: 235px;
-  background: var(--panel);
-  padding: 13px 14px 8px;
-  border-radius: 2px;
+  left: 16px;
+  top: 72px;
+  width: 280px;
+  background: linear-gradient(
+    180deg,
+    rgba(14, 20, 28, 0.72),
+    rgba(10, 15, 20, 0.58)
+  );
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  padding: 11px 12px 8px;
+  border-radius: 14px;
+  box-shadow: 0 10px 22px #0008;
 }
 .reward-rail h1 {
-  font-size: 24px;
+  font-size: 20px;
   margin: 0 0 8px;
+  letter-spacing: 0.06em;
 }
 .reward-rail p {
   display: flex;
   align-items: center;
   gap: 10px;
   margin: 0;
-  padding: 9px 0;
-  border-top: 1px solid #ffffff35;
+  padding: 9px 0 8px;
+  border-top: 1px solid #ffffff2a;
 }
 .reward-rail svg {
-  width: 25px;
-  color: #ff7896;
+  width: 22px;
+  color: #ff7f98;
   flex: none;
 }
 .reward-rail span {
@@ -221,18 +241,18 @@ header {
   min-width: 0;
 }
 .reward-rail b {
-  font-size: 14px;
+  font-size: 13px;
   overflow-wrap: anywhere;
 }
 .reward-rail small {
-  font-size: 10px;
+  font-size: 9px;
   color: #d4dcde;
   margin-top: 2px;
 }
 .camera-guide {
   position: absolute;
-  right: 20px;
-  top: 96px;
+  right: 16px;
+  top: 79px;
   display: flex;
   gap: 7px;
   align-items: center;
@@ -240,15 +260,17 @@ header {
   border: 1px dashed #ffffff9c;
   background: #0006;
   font-size: 10px;
+  border-radius: 999px;
+  box-shadow: 0 10px 18px #0007;
 }
 .camera-guide svg {
   width: 16px;
 }
 .feedback-card {
   position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: 95px;
+  left: 16px;
+  right: 16px;
+  bottom: 102px;
   display: flex;
   align-items: center;
   gap: 11px;
@@ -256,8 +278,9 @@ header {
   color: #16191b;
   text-shadow: none;
   border-left: 6px solid var(--hot);
-  padding: 11px 13px;
-  box-shadow: 0 6px 25px #0008;
+  border-radius: 12px;
+  padding: 12px 13px;
+  box-shadow: 0 12px 30px #0008;
 }
 .feedback-card img {
   width: 46px;
@@ -270,11 +293,11 @@ header {
   flex: 1;
 }
 .feedback-card strong {
-  font-size: 17px;
+  font-size: 16px;
   overflow-wrap: anywhere;
 }
 .feedback-card p {
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.35;
   margin: 3px 0 0;
   overflow-wrap: anywhere;
@@ -287,13 +310,17 @@ header {
 }
 .live-totals {
   position: absolute;
-  left: 18px;
-  right: 18px;
+  left: 16px;
+  right: 16px;
   bottom: 18px;
-  height: 63px;
+  height: 64px;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   background: var(--panel);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  backdrop-filter: blur(6px);
+  overflow: hidden;
 }
 .live-totals span {
   display: grid;
@@ -322,35 +349,42 @@ header {
   color: #d4dcde;
 }
 .live-totals .likes {
-  background: #ff315f26;
+  background: linear-gradient(180deg, #ff315f16 0%, #ff315f00 100%);
 }
 .enable-audio {
   position: absolute;
-  inset: auto 18px 94px auto;
+  inset: auto 16px 88px auto;
   background: var(--hot);
   color: #fff;
   border: 0;
-  padding: 10px 13px;
+  border-radius: 10px;
+  padding: 10px 12px;
   display: flex;
   gap: 7px;
   align-items: center;
+  box-shadow: 0 10px 26px #ff315f80;
+  cursor: pointer;
   font-weight: 700;
 }
 .enable-audio:focus-visible {
   outline: 3px solid #fff;
+  outline-offset: 2px;
 }
 .error {
   position: absolute;
-  left: 18px;
+  left: 16px;
   right: 18px;
   bottom: 164px;
-  background: #8a1227e8;
+  background: linear-gradient(90deg, #8a1227e8, #631019e8);
+  border-radius: 10px;
+  border: 1px solid #ff8fa1;
   padding: 10px;
   font-size: 11px;
 }
 @media (max-height: 760px) {
   .reward-rail {
-    top: 78px;
+    top: 72px;
+    width: 260px;
   }
   .reward-rail p {
     padding: 7px 0;
@@ -360,6 +394,14 @@ header {
   }
   .live-totals {
     bottom: 12px;
+  }
+  .live-totals {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    height: 100px;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -385,14 +427,6 @@ header {
   left: 12px;
   right: 12px;
   bottom: 124px;
-}
-.live-totals {
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
-  height: 100px;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(2, 1fr);
 }
 .live-totals span:nth-child(3) {
   border-left: 0;

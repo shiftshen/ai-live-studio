@@ -3,20 +3,24 @@ import { ref, onMounted, onUnmounted } from "vue";
 import LiveStage from "./LiveStage.vue";
 import { api } from "../api";
 import type { Job } from "../../shared/types";
+
 const roomId = decodeURIComponent(location.pathname.split("/")[2] || "");
 const token = new URLSearchParams(location.search).get("token") || "";
 const suffix = "?token=" + encodeURIComponent(token);
-const current = ref<Job | null>(null),
-  error = ref(""),
-  needsPlay = ref(false),
-  paused = ref(true);
-let stopped = false,
-  audio: HTMLAudioElement | null = null,
-  timer: ReturnType<typeof setTimeout> | undefined,
-  monitor: ReturnType<typeof setInterval>;
+const roomIdSafe = () => encodeURIComponent(roomId);
+const current = ref<Job | null>(null);
+const error = ref("");
+const needsPlay = ref(false);
+const paused = ref(true);
+
+let stopped = false;
+let audio: HTMLAudioElement | null = null;
+let waitingSpeech: HTMLAudioElement | null = null;
+let timer: ReturnType<typeof setTimeout> | undefined;
+let monitor: ReturnType<typeof setInterval>;
+
 const handled = new Set<string>();
-const transparent =
-  new URLSearchParams(location.search).get("transparent") === "1";
+const transparent = new URLSearchParams(location.search).get("transparent") === "1";
 const language = ref<"zh" | "th">("zh");
 const rewards = ref<
   Array<{
@@ -28,6 +32,7 @@ const rewards = ref<
   }>
 >([]);
 const totals = ref({ viewers: 0, follows: 0, likes: 0, gifts: 0 });
+
 type Payload = {
   jobs: Job[];
   room: { language: string };
@@ -35,6 +40,7 @@ type Payload = {
   totals: typeof totals.value;
   settings: { speechVolume: number; speechRate: number; paused: boolean };
 };
+
 function scopedMedia(path: string) {
   const url = new URL(path, location.origin);
   if (url.origin !== location.origin) return "";
@@ -42,10 +48,9 @@ function scopedMedia(path: string) {
   url.searchParams.set("roomId", roomId);
   return url.href;
 }
+
 async function read() {
-  const d = await api<Payload>(
-    `/overlay/${encodeURIComponent(roomId)}${suffix}`,
-  );
+  const d = await api<Payload>(`/overlay/${roomIdSafe()}${suffix}`);
   language.value = d.room.language === "th" ? "th" : "zh";
   rewards.value = d.rewards || [];
   totals.value = d.totals || { viewers: 0, follows: 0, likes: 0, gifts: 0 };
@@ -55,10 +60,20 @@ async function read() {
       : "AI Live Studio · 抖音直播画面";
   const wasPaused = paused.value;
   paused.value = d.settings.paused;
-  if (paused.value) audio?.pause();
-  else if (wasPaused && audio && !audio.ended && !needsPlay.value) await play();
+  if (paused.value) {
+    stopAudio();
+  } else if (
+    wasPaused &&
+    audio &&
+    !audio.ended &&
+    !needsPlay.value &&
+    !waitingSpeech
+  ) {
+    await playAudio(audio, true);
+  }
   return d;
 }
+
 async function ack(j: Job) {
   let d = await read();
   while (d.settings.paused && !stopped) {
@@ -66,20 +81,99 @@ async function ack(j: Job) {
     d = await read();
   }
   if (stopped) return;
-  await api(`/overlay/${encodeURIComponent(roomId)}/ack${suffix}`, {
+  await api(`/overlay/${roomIdSafe()}/ack${suffix}`, {
     jobId: j.id,
   });
   handled.add(j.id);
 }
-async function play() {
-  if (paused.value) return;
-  try {
-    await audio?.play();
-    needsPlay.value = false;
-  } catch {
-    needsPlay.value = true;
+
+function stopAudio() {
+  if (audio) {
+    audio.pause();
+    audio.onended = null;
+    audio.onerror = null;
+    audio = null;
   }
 }
+
+function clearWaitingSpeech() {
+  if (waitingSpeech) {
+    waitingSpeech.onended = null;
+    waitingSpeech.onpause = null;
+    waitingSpeech.onerror = null;
+    waitingSpeech = null;
+  }
+}
+
+function finishSpeech(result: boolean) {
+  clearWaitingSpeech();
+  waitingSpeech = null;
+  needsPlay.value = !result;
+  if (!result) {
+    error.value = "语音播放被拦截，点击按钮后可继续播报";
+  }
+}
+
+async function waitSpeechFinished(player: HTMLAudioElement) {
+  return new Promise<boolean>((resolve) => {
+    const timeout = setTimeout(() => {
+      player.pause();
+      resolve(false);
+    }, 18000);
+    player.onended = () => {
+      clearTimeout(timeout);
+      resolve(true);
+    };
+    player.onerror = () => {
+      clearTimeout(timeout);
+      resolve(false);
+    };
+    player.onpause = () => {
+      clearTimeout(timeout);
+      resolve(player.currentTime > 0.25);
+    };
+  });
+}
+
+async function playAudio(player: HTMLAudioElement, isAuto = false) {
+  if (paused.value) return false;
+  try {
+    await player.play();
+    if (!isAuto) {
+      return true;
+    }
+    return true;
+  } catch {
+    player.onended = null;
+    player.onerror = null;
+    player.onpause = null;
+    waitingSpeech = player;
+    needsPlay.value = true;
+    return false;
+  }
+}
+
+async function play() {
+  if (paused.value) return;
+  const player = waitingSpeech || audio;
+  if (!player) return;
+  const started = await playAudio(player);
+  if (!started) return;
+  const finished = await waitSpeechFinished(player);
+  finishSpeech(finished);
+  if (
+    finished &&
+    waitingSpeech === null &&
+    current.value &&
+    current.value.action === "speech" &&
+    current.value.id
+  ) {
+    await ack(current.value);
+    current.value = null;
+    audio = null;
+  }
+}
+
 async function display() {
   let elapsed = 0;
   while (elapsed < 6000 && !stopped) {
@@ -87,11 +181,16 @@ async function display() {
     if (!paused.value) elapsed += 250;
   }
 }
+
 async function poll() {
   try {
     const d = await read();
     error.value = "";
     if (d.settings.paused) return;
+    if (waitingSpeech) {
+      needsPlay.value = true;
+      return;
+    }
     for (const j of d.jobs) {
       if (stopped || paused.value) break;
       if (
@@ -104,48 +203,59 @@ async function poll() {
         continue;
       current.value = j;
       if (j.action === "speech" && j.mediaUrl) {
+        stopAudio();
         audio = new Audio(scopedMedia(j.mediaUrl));
         audio.volume = Math.max(0, Math.min(1, d.settings.speechVolume));
         audio.playbackRate = d.settings.speechRate || 1;
-        await new Promise<void>((resolve, reject) => {
-          audio!.onended = () => resolve();
-          audio!.onerror = () => reject(new Error("语音播放失败，未确认完成"));
-          play();
-        });
-        audio = null;
+        const started = await playAudio(audio);
+        if (!started) {
+          needsPlay.value = true;
+          return;
+        }
+        const finished = await waitSpeechFinished(audio);
+        finishSpeech(finished);
+        if (!finished) {
+          needsPlay.value = true;
+          return;
+        }
+        current.value = null;
         await ack(j);
+        audio = null;
       } else if (j.action === "overlay") {
         await display();
         await ack(j);
+        current.value = null;
       }
-      current.value = null;
     }
   } catch (e) {
     error.value = (e as Error).message;
-    audio?.pause();
-    audio = null;
+    stopAudio();
     current.value = null;
   } finally {
     if (!stopped) timer = setTimeout(poll, 1500);
   }
 }
+
 onMounted(() => {
   poll();
   monitor = setInterval(() => {
     read().catch((e) => {
       error.value = (e as Error).message;
       paused.value = true;
-      audio?.pause();
+      stopAudio();
     });
   }, 1000);
 });
+
 onUnmounted(() => {
   stopped = true;
   clearTimeout(timer);
   clearInterval(monitor);
-  audio?.pause();
+  stopAudio();
+  clearWaitingSpeech();
 });
 </script>
+
 <template>
   <LiveStage
     v-if="!transparent"
