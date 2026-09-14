@@ -57,7 +57,7 @@ for (const room of state.rooms) {
         oncePerSession: p.oncePerSession,
         continueMatching: false,
         templateId: template.id,
-        actions: ["speech", "overlay"],
+        actions: [...p.actions],
         ai: false,
         avatar: true,
       },

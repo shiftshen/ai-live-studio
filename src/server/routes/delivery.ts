@@ -20,8 +20,24 @@ export function registerDeliveryRoutes(ctx: RouteContext) {
   };
   app.get("/api/v1/overlay/:id", (req: any) => {
     const room = overlayRoom(req);
+    const totals = s.db
+      .prepare(
+        `SELECT
+          COUNT(DISTINCT CASE WHEN json_extract(data,'$.type')='join' THEN json_extract(data,'$.userId') END) viewers,
+          COUNT(CASE WHEN json_extract(data,'$.type')='follow' THEN 1 END) follows,
+          COALESCE(SUM(CASE WHEN json_extract(data,'$.type')='like' THEN json_extract(data,'$.count') ELSE 0 END),0) likes,
+          COALESCE(SUM(CASE WHEN json_extract(data,'$.type')='gift' THEN json_extract(data,'$.count') ELSE 0 END),0) gifts
+        FROM events WHERE json_extract(data,'$.roomId')=? AND json_extract(data,'$.sessionId')=? AND json_extract(data,'$.origin')='live' AND COALESCE(json_extract(data,'$.historical'),0)=0`,
+      )
+      .get(room.id, room.sessionId) as any;
     return {
       room: { name: room.name, language: room.language },
+      totals: {
+        viewers: Number(totals.viewers),
+        follows: Number(totals.follows),
+        likes: Number(totals.likes),
+        gifts: Number(totals.gifts),
+      },
       rewards: s
         .list("rules")
         .filter(

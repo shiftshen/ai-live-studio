@@ -2,9 +2,9 @@
 
 本地直播互动工作台：接收 TikTok、抖音真实直播事件，按房间与场次执行规则，生成文字、头像、语音、OBS 展示及飞鹅打印任务。项目独立于 DAMO；不修改 DAMO 业务数据。
 
-已搭建中泰双语“心愿邮局”：原创背景、高清活动图、每种语言7条规则、昵称/头像卡和语音感谢。自己的抖音实播两场，分别9分7秒、9分52秒（第二场用户发起）。第二场接通后9条真实事件完成3组语音与展示，平台回放已验证中文欢迎音画。本轮新增打印0张。
+已搭建中泰双语“心愿邮局”：透明摄像头奖励层、每种语言10条规则、实时点赞里程碑、昵称/头像卡、语音感谢和飞鹅打印。直播伴侣使用真实摄像头作为底层，奖励信息仅覆盖左侧窄栏，不遮挡打印机出纸画面。
 
-**全项目尚未全部现场验收通过**：真实礼物复验、自己的TikTok开播、实体头像及可靠纸面闭环、昵称/数量逐字发音仍未完成。软件58项测试和Dycast27项契约检查通过。详情见[实播报告](https://github.com/shiftshen/ai-live-studio/blob/main/docs/OWN-LIVE-RESULT.md)。
+**全项目尚未全部现场验收通过**：真实礼物复验、自己的TikTok开播、实体头像及可靠纸面闭环、昵称/数量逐字发音仍未完成。软件63项测试和Dycast27项契约检查通过。详情见[实播报告](https://github.com/shiftshen/ai-live-studio/blob/main/docs/OWN-LIVE-RESULT.md)。
 
 ![中文活动设计](https://raw.githubusercontent.com/shiftshen/ai-live-studio/main/public/live-assets/activity-zh.png)
 ![泰文活动设计](https://raw.githubusercontent.com/shiftshen/ai-live-studio/main/public/live-assets/activity-th.png)
@@ -27,6 +27,8 @@ npm run up
 本地 AI 依赖 [Ollama](http://127.0.0.1:11434)，语音调用 `/Users/shift/openclaw/scripts/omnivoice_local_tts.py`。模型、音色与设备能力以诊断和实际生成结果为准。
 
 ## 使用顺序
+
+最短操作流程见[一键开播使用教程](/Volumes/M2USB/Projects/ai-live-studio/docs/USER-GUIDE.md)。日常使用可直接双击 `/Volumes/M2USB/Projects/ai-live-studio/一键启动直播工具.command`。
 
 1. **系统与访问**：管理员设置打印速度、队列上限、保留周期和全局暂停；给操作员或观察员分配房间。
 2. **直播间**：填写 TikTok 用户名或完整直播地址；抖音填写数字房间号或完整地址。选择中文、泰语或英文，填写人设与知识，管理员绑定打印机。

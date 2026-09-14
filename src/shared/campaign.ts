@@ -48,6 +48,7 @@ export function campaignPreset(language: "zh" | "th") {
       keywords: [],
       oncePerSession: true,
       cooldownSec: 60,
+      actions: ["print", "speech", "overlay"] as const,
       body: th
         ? "ยินดีต้อนรับคุณ {{nickname}} สู่ไปรษณีย์แห่งความหวังค่ะ"
         : "欢迎{{nickname}}来到心愿邮局，很高兴遇见你。",
@@ -61,6 +62,7 @@ export function campaignPreset(language: "zh" | "th") {
       keywords: [],
       oncePerSession: true,
       cooldownSec: 60,
+      actions: ["print", "speech", "overlay"] as const,
       body: th
         ? "ขอบคุณคุณ {{nickname}} ที่ติดตามค่ะ แวะมาพูดคุยกันได้เสมอนะคะ"
         : "谢谢{{nickname}}的关注，欢迎常来坐坐。",
@@ -74,6 +76,7 @@ export function campaignPreset(language: "zh" | "th") {
       keywords: th ? ["สวัสดี", "hello"] : ["你好", "hello"],
       oncePerSession: false,
       cooldownSec: 60,
+      actions: ["print", "speech", "overlay"] as const,
       body: th
         ? "สวัสดีค่ะคุณ {{nickname}} วันนี้เป็นอย่างไรบ้างคะ"
         : "你好，{{nickname}}，愿今天有好事发生。",
@@ -87,10 +90,27 @@ export function campaignPreset(language: "zh" | "th") {
       keywords: th ? ["อวยพร", "วันเกิด"] : ["祝福", "生日快乐"],
       oncePerSession: false,
       cooldownSec: 60,
+      actions: ["speech", "overlay"] as const,
       body: th
         ? "คุณ {{nickname}} ขอให้วันนี้มีรอยยิ้ม สุขภาพแข็งแรง และพบเจอเรื่องดี ๆ นะคะ"
         : "{{nickname}}，愿你所遇皆温暖，所行皆坦途，每天都有值得期待的小幸福。",
     },
+    ...[10, 50, 100].map((n, i) => ({
+      key: "like-" + n,
+      name: th ? `ไลก์ครบ ${n}` : `点赞达到 ${n}`,
+      eventType: "like",
+      minCount: n,
+      priority: 300 + i * 10,
+      keywords: [],
+      oncePerSession: false,
+      cooldownSec: 0,
+      actions: (n === 100
+        ? ["print", "speech", "overlay"]
+        : ["speech", "overlay"]) as readonly ("print" | "speech" | "overlay")[],
+      body: th
+        ? `ขอบคุณทุกคนค่ะ ตอนนี้มี ${n} ไลก์แล้ว`
+        : `谢谢大家，直播间点赞已经达到${n}个！`,
+    })),
     ...[1, 10, 66].map((n, i) => ({
       key: "gift-" + n,
       name: c.tiers[i],
@@ -100,6 +120,7 @@ export function campaignPreset(language: "zh" | "th") {
       keywords: [],
       oncePerSession: false,
       cooldownSec: 0,
+      actions: ["print", "speech", "overlay"] as const,
       body: th
         ? [
             "ขอบคุณคุณ {{nickname}} สำหรับ {{giftName}} จำนวน {{count}} ชิ้นค่ะ ยินดีที่ได้พบกันนะคะ",

@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Gift, Heart, Mail, Sparkles, Volume2 } from "lucide-vue-next";
+import {
+  Camera,
+  Gift,
+  Heart,
+  Printer,
+  UserPlus,
+  Users,
+  Volume2,
+} from "lucide-vue-next";
 import type { Job } from "../../shared/types";
-import { campaignCopy } from "../../shared/campaign";
 const props = defineProps<{
   language: "zh" | "th";
   current: Job | null;
@@ -16,14 +23,10 @@ const props = defineProps<{
     giftIds: string[];
     actions: string[];
   }>;
+  totals: { viewers: number; follows: number; likes: number; gifts: number };
 }>();
 defineEmits<{ play: [] }>();
-const c = computed(() => campaignCopy[props.language]);
-const visibleRewards = computed(() =>
-  props.rewards
-    .filter((r) => r.actions.includes("speech") && r.giftIds.length === 0)
-    .slice(0, 3),
-);
+const th = computed(() => props.language === "th");
 const media = computed(() => {
   if (!props.current?.avatar) return "";
   const u = new URL(props.current.avatar, location.origin);
@@ -35,390 +38,373 @@ const media = computed(() => {
 });
 </script>
 <template>
-  <main
-    class="live-stage"
-    :lang="language"
-    :class="{ thai: language === 'th' }"
-  >
-    <header class="stage-header">
-      <span class="postmark"><Mail :size="20" /> WISH POST</span
-      ><span class="stage-state">{{ paused ? c.paused : c.ready }}</span>
-    </header>
-    <section class="stage-intro">
-      <p>AI LIVE STUDIO</p>
-      <h1>{{ c.title }}</h1>
-      <p>{{ c.subtitle }}</p>
-    </section>
-    <section class="wish-letter" aria-live="polite">
-      <div class="letter-stamp"><Heart :size="24" /></div>
-      <template v-if="current && !paused"
-        ><img v-if="media" :src="media" class="letter-avatar" alt="" /><span
-          class="letter-label"
-          >{{
-            language === "zh" ? "这一封，写给你" : "จดหมายฉบับนี้ถึงคุณ"
-          }}</span
+  <main class="live-hud" :lang="language">
+    <header>
+      <div class="brand">
+        <Printer /><span
+          ><b>{{ th ? "เครื่องพิมพ์ตอบกลับ" : "关注就打印" }}</b
+          ><small>AI LIVE PRINTER</small></span
         >
-        <h2>{{ current.nickname }}</h2>
-        <p class="letter-message">{{ current.content }}</p>
-        <span class="letter-sign"
-          ><Volume2 :size="17" />{{
-            language === "zh" ? "心意已送达" : "ส่งความรู้สึกดี ๆ ถึงคุณ"
-          }}</span
-        ></template
-      >
-      <template v-else
-        ><Mail :size="52" class="idle-mail" /><span class="letter-label">{{
-          c.welcome
-        }}</span>
-        <h2 class="idle-title">{{ c.idle }}</h2>
-        <p class="letter-message small">{{ c.free }}</p></template
-      >
-    </section>
-    <section class="reward-board">
-      <h2><Sparkles :size="20" />{{ c.gifts }}</h2>
-      <div class="reward-line" v-for="(r, i) in visibleRewards" :key="r.id">
-        <span class="gift-symbol" :class="'gift-' + i"
-          ><Gift :size="29"
-        /></span>
-        <div>
-          <strong>{{ c.anyGift }} × {{ r.minCount }}</strong
-          ><small>{{ r.name }}</small>
-        </div>
-        <span class="reward-arrow">↗</span>
       </div>
-      <p class="reward-note">{{ c.countNote }}</p>
+      <span class="live-state" :class="{ paused }"
+        >●
+        {{
+          paused
+            ? th
+              ? "หยุดชั่วคราว"
+              : "互动暂停"
+            : th
+              ? "กำลังทำงาน"
+              : "实时运行"
+        }}</span
+      >
+    </header>
+    <aside class="reward-rail">
+      <h1>{{ th ? "ร่วมสนุก" : "互动奖励" }}</h1>
+      <p>
+        <UserPlus /><span
+          ><b>{{ th ? "ติดตาม" : "关注" }}</b
+          ><small>{{
+            th ? "พิมพ์รูปโปรไฟล์" : "打印头像＋语音感谢"
+          }}</small></span
+        >
+      </p>
+      <p>
+        <Heart /><span
+          ><b>{{ th ? "กดไลก์" : "点赞" }} 10 / 50 / 100</b
+          ><small>{{
+            th ? "ประกาศยอดไลก์" : "实时累计＋里程碑播报"
+          }}</small></span
+        >
+      </p>
+      <p>
+        <Gift /><span
+          ><b>{{ th ? "ของขวัญ 1 ชิ้น" : "小心心／任意礼物" }}</b
+          ><small>{{
+            th ? "พิมพ์รูปพร้อมขอบคุณ" : "打印头像＋礼物感谢"
+          }}</small></span
+        >
+      </p>
+      <p>
+        <Gift /><span
+          ><b>{{ th ? "ของขวัญ 10 ชิ้น" : "礼物 × 10" }}</b
+          ><small>{{ th ? "คำอวยพรพิเศษ" : "头像＋专属祝福" }}</small></span
+        >
+      </p>
+      <p>
+        <Gift /><span
+          ><b>{{ th ? "ของขวัญ 66 ชิ้น" : "礼物 × 66" }}</b
+          ><small>{{
+            th ? "รูปใหญ่และคำอวยพร" : "大图＋特别祝福"
+          }}</small></span
+        >
+      </p>
+    </aside>
+    <section class="camera-guide">
+      <Camera /><span>{{
+        th ? "กล้องถ่ายเครื่องพิมพ์จริง" : "实拍打印区"
+      }}</span>
     </section>
-    <footer>{{ c.note }}</footer>
+    <section v-if="current && !paused" class="feedback-card" aria-live="polite">
+      <img v-if="media" :src="media" alt="" />
+      <div>
+        <strong>{{ current.nickname }}</strong>
+        <p>{{ current.content }}</p>
+      </div>
+      <Volume2 />
+    </section>
+    <section class="live-totals" aria-label="本场实时数据">
+      <span
+        ><Users /><b>{{ totals.viewers }}</b
+        ><small>{{ th ? "เข้าห้อง" : "进场" }}</small></span
+      ><span
+        ><UserPlus /><b>{{ totals.follows }}</b
+        ><small>{{ th ? "ติดตาม" : "关注" }}</small></span
+      ><span class="likes"
+        ><Heart /><b>{{ totals.likes }}</b
+        ><small>{{ th ? "ไลก์" : "点赞" }}</small></span
+      ><span
+        ><Gift /><b>{{ totals.gifts }}</b
+        ><small>{{ th ? "ของขวัญ" : "礼物" }}</small></span
+      >
+    </section>
     <button
-      class="stage-play"
       v-if="needsPlay && !paused"
+      class="enable-audio"
       @click="$emit('play')"
     >
-      <Volume2 :size="20" />{{ c.play }}
+      <Volume2 />{{ th ? "เปิดเสียง" : "开启语音" }}
     </button>
-    <p class="stage-error" role="alert" v-if="error">{{ c.error }}</p>
+    <p v-if="error" class="error">
+      {{ th ? "การเชื่อมต่อขัดข้อง" : "互动连接异常" }}：{{ error }}
+    </p>
   </main>
 </template>
 <style scoped>
-.live-stage {
-  font-family: "PingFang SC", "Thonburi", sans-serif;
-  color: #fffaf2;
+.live-hud {
+  --panel: rgba(8, 12, 15, 0.82);
+  --hot: #ff315f;
+  position: relative;
   width: 100%;
   height: 100dvh;
   min-height: 720px;
-  max-width: 1080px;
-  margin: auto;
-  position: relative;
   overflow: hidden;
-  background: #103f43 url("/live-assets/wish-post.png") center/cover;
-  padding: 6% 7% 10%;
-  display: flex;
-  flex-direction: column;
-  gap: 2.4%;
+  background: transparent;
+  color: #fff;
+  font-family: "PingFang SC", "Noto Sans Thai", sans-serif;
+  text-shadow: 0 1px 3px #000;
+  padding: 18px;
   box-sizing: border-box;
 }
-.stage-header {
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--panel);
+  border-left: 5px solid var(--hot);
+  padding: 10px 12px;
+}
+.brand {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
-  gap: 12px;
+  gap: 9px;
 }
-.postmark {
+.brand svg {
+  width: 25px;
+}
+.brand span {
+  display: grid;
+}
+.brand b {
+  font-size: 19px;
+}
+.brand small {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: #c9d2d4;
+}
+.live-state {
+  font-size: 11px;
+  color: #6ef2b1;
+}
+.live-state.paused {
+  color: #ffc75f;
+}
+.reward-rail {
+  position: absolute;
+  left: 18px;
+  top: 92px;
+  width: 235px;
+  background: var(--panel);
+  padding: 13px 14px 8px;
+  border-radius: 2px;
+}
+.reward-rail h1 {
+  font-size: 24px;
+  margin: 0 0 8px;
+}
+.reward-rail p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 9px 0;
+  border-top: 1px solid #ffffff35;
+}
+.reward-rail svg {
+  width: 25px;
+  color: #ff7896;
+  flex: none;
+}
+.reward-rail span {
+  display: grid;
+  min-width: 0;
+}
+.reward-rail b {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.reward-rail small {
+  font-size: 10px;
+  color: #d4dcde;
+  margin-top: 2px;
+}
+.camera-guide {
+  position: absolute;
+  right: 20px;
+  top: 96px;
   display: flex;
   gap: 7px;
   align-items: center;
-  letter-spacing: 2px;
-}
-.stage-state {
-  color: #bde6df;
-  font-size: 11px;
-}
-.stage-intro {
-  text-align: center;
-  margin: 2% 0;
-}
-.stage-intro > p:first-child {
+  padding: 7px 9px;
+  border: 1px dashed #ffffff9c;
+  background: #0006;
   font-size: 10px;
-  letter-spacing: 4px;
-  color: #bde6df;
 }
-.stage-intro h1 {
-  font-size: 44px;
-  margin: 9px 0;
-  font-weight: 800;
+.camera-guide svg {
+  width: 16px;
 }
-.stage-intro > p:last-child {
-  font-size: 13px;
-  letter-spacing: 2px;
-}
-.wish-letter {
-  flex-shrink: 0;
-  position: relative;
-  background: #fffaf2;
-  color: #193f42;
-  padding: 26px 24px 22px;
-  min-height: 240px;
-  border-radius: 4px;
-  box-shadow: 0 10px 24px #061f2733;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-top: 5px solid #ef6553;
-  text-align: center;
-}
-.letter-stamp {
+.feedback-card {
   position: absolute;
-  right: 14px;
-  top: 13px;
-  transform: rotate(12deg);
-  color: #ef6553;
-  border: 1px dashed #ef6553;
-  padding: 6px;
+  left: 18px;
+  right: 18px;
+  bottom: 95px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: #fff;
+  color: #16191b;
+  text-shadow: none;
+  border-left: 6px solid var(--hot);
+  padding: 11px 13px;
+  box-shadow: 0 6px 25px #0008;
 }
-.letter-label {
-  font-size: 11px;
-  color: #587372;
-  margin: 8px 0;
-  letter-spacing: 1px;
+.feedback-card img {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
 }
-.wish-letter h2 {
-  font-size: 27px;
+.feedback-card div {
+  min-width: 0;
+  flex: 1;
+}
+.feedback-card strong {
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+.feedback-card p {
+  font-size: 12px;
   line-height: 1.35;
-  margin: 8px 0 14px;
-  max-width: 100%;
+  margin: 3px 0 0;
   overflow-wrap: anywhere;
-  white-space: pre-line;
-}
-.letter-message {
-  flex-shrink: 0;
-  max-width: 100%;
-  white-space: pre-wrap;
-  font-size: 16px;
-  line-height: 1.5;
-  margin: 0;
-  overflow-wrap: anywhere;
-  max-height: 220px;
+  max-height: 3.9em;
   overflow: hidden;
 }
-.letter-message.small {
-  font-size: 12px;
-  color: #587372;
+.feedback-card > svg {
+  color: var(--hot);
+  flex: none;
 }
-.letter-sign {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  margin-top: 10px;
-  font-size: 10px;
-  color: #af5144;
-}
-.letter-avatar {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 3px solid #e9d9c7;
-}
-.idle-mail {
-  color: #ef6553;
-  margin-bottom: 9px;
-}
-.reward-board {
-  padding: 10px 14px;
-  background: rgba(8, 43, 47, 0.88);
-  border-radius: 6px;
-  box-shadow: 0 4px 18px #061f2722;
-}
-.reward-board > h2 {
-  font-size: 16px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin: 8px 0 12px;
-}
-.reward-line {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  border-top: 1px solid #fff3;
-  padding: 10px 0;
-}
-.gift-symbol {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  background: #e86956;
-  color: #fffaf2;
-  border-radius: 10px;
-}
-.gift-1 {
-  background: #bde6df;
-  color: #103f43;
-}
-.gift-2 {
-  background: #eab75f;
-  color: #103f43;
-}
-.reward-line strong {
-  display: block;
-  font-size: 14px;
-}
-.reward-line small {
-  display: block;
-  font-size: 12px;
-  color: #bde6df;
-  margin-top: 4px;
-}
-.reward-arrow {
-  margin-left: auto;
-  color: #bde6df;
-  font-size: 24px;
-}
-.reward-note {
-  font-size: 10px;
-  line-height: 1.55;
-  color: #c8ded9;
-  margin: 10px 0;
-}
-.live-stage footer {
-  font-size: 10px;
-  text-align: center;
-  line-height: 1.5;
-  color: #dcece5;
-  margin-top: auto;
-}
-.stage-play {
+.live-totals {
   position: absolute;
-  bottom: 24px;
-  left: 10%;
-  width: 80%;
-  padding: 14px;
-  background: #ef6553;
-  color: white;
-  border: 2px solid white;
-  border-radius: 8px;
-  display: flex;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  height: 63px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--panel);
+}
+.live-totals span {
+  display: grid;
+  grid-template-columns: 18px auto;
+  grid-template-rows: 1fr 1fr;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-size: 16px;
-  cursor: pointer;
+  column-gap: 5px;
+  border-left: 1px solid #ffffff29;
+  padding: 7px;
 }
-.stage-play:focus-visible {
-  outline: 4px solid #eab75f;
-  outline-offset: 3px;
+.live-totals span:first-child {
+  border: 0;
 }
-.stage-error {
+.live-totals svg {
+  width: 17px;
+  grid-row: 1/3;
+}
+.live-totals b {
+  font:
+    700 19px ui-monospace,
+    monospace;
+}
+.live-totals small {
+  font-size: 9px;
+  color: #d4dcde;
+}
+.live-totals .likes {
+  background: #ff315f26;
+}
+.enable-audio {
   position: absolute;
-  bottom: 5px;
-  left: 0;
-  width: 100%;
-  text-align: center;
+  inset: auto 18px 94px auto;
+  background: var(--hot);
+  color: #fff;
+  border: 0;
+  padding: 10px 13px;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  font-weight: 700;
+}
+.enable-audio:focus-visible {
+  outline: 3px solid #fff;
+}
+.error {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 164px;
+  background: #8a1227e8;
+  padding: 10px;
   font-size: 11px;
-  background: #963c32;
-  padding: 8px;
 }
-.thai .stage-intro h1 {
-  font-size: 31px;
+@media (max-height: 760px) {
+  .reward-rail {
+    top: 78px;
+  }
+  .reward-rail p {
+    padding: 7px 0;
+  }
+  .feedback-card {
+    bottom: 87px;
+  }
+  .live-totals {
+    bottom: 12px;
+  }
 }
-.thai .stage-intro > p:last-child {
-  letter-spacing: 0;
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }
-.thai .wish-letter h2 {
-  font-size: 24px;
+.live-hud {
+  background: transparent;
+  padding: 12px;
 }
-.thai .letter-message {
+.reward-rail {
+  left: 12px;
+  right: 12px;
+  top: 82px;
+  width: auto;
+}
+.camera-guide {
+  display: none;
+}
+.feedback-card {
+  left: 12px;
+  right: 12px;
+  bottom: 124px;
+}
+.live-totals {
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  height: 100px;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+.live-totals span:nth-child(3) {
+  border-left: 0;
+  border-top: 1px solid #ffffff29;
+}
+.live-totals span:nth-child(4) {
+  border-top: 1px solid #ffffff29;
+}
+.brand b {
   font-size: 16px;
 }
-@media (min-height: 1100px) {
-  .stage-intro h1 {
-    font-size: 64px;
-  }
-  .stage-intro > p:last-child {
-    font-size: 21px;
-  }
-  .stage-header {
-    font-size: 16px;
-  }
-  .stage-state {
-    font-size: 16px;
-  }
-  .wish-letter {
-    min-height: 400px;
-    padding: 42px;
-  }
-  .wish-letter h2 {
-    font-size: 45px;
-  }
-  .letter-message {
-    font-size: 28px;
-    max-height: 330px;
-  }
-  .letter-label {
-    font-size: 18px;
-  }
-  .letter-avatar {
-    width: 100px;
-    height: 100px;
-  }
-  .reward-line {
-    padding: 20px 0;
-  }
-  .reward-line strong {
-    font-size: 23px;
-  }
-  .reward-line small {
-    font-size: 21px;
-  }
-  .gift-symbol {
-    width: 70px;
-    height: 70px;
-  }
-  .reward-board > h2 {
-    font-size: 25px;
-  }
-  .reward-note,
-  .live-stage footer {
-    font-size: 16px;
-  }
-  .thai .stage-intro h1 {
-    font-size: 48px;
-  }
-  .thai .wish-letter h2 {
-    font-size: 38px;
-  }
-  .thai .letter-message {
-    font-size: 27px;
-  }
-}
-@media (max-height: 790px) {
-  .live-stage {
-    gap: 10px;
-    padding-top: 24px;
-    padding-bottom: 35px;
-  }
-  .stage-intro {
-    margin: 0;
-  }
-  .stage-intro h1 {
-    font-size: 34px;
-  }
-  .wish-letter {
-    min-height: 200px;
-    padding: 16px;
-  }
-  .reward-line {
-    padding: 6px 0;
-  }
-  .gift-symbol {
-    width: 36px;
-    height: 36px;
-  }
-  .reward-note {
-    margin: 6px 0;
-  }
+.live-state {
+  font-size: 9px;
 }
 </style>

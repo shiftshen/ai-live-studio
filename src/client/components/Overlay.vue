@@ -27,10 +27,12 @@ const rewards = ref<
     actions: string[];
   }>
 >([]);
+const totals = ref({ viewers: 0, follows: 0, likes: 0, gifts: 0 });
 type Payload = {
   jobs: Job[];
   room: { language: string };
   rewards: typeof rewards.value;
+  totals: typeof totals.value;
   settings: { speechVolume: number; speechRate: number; paused: boolean };
 };
 function scopedMedia(path: string) {
@@ -46,6 +48,7 @@ async function read() {
   );
   language.value = d.room.language === "th" ? "th" : "zh";
   rewards.value = d.rewards || [];
+  totals.value = d.totals || { viewers: 0, follows: 0, likes: 0, gifts: 0 };
   document.title =
     language.value === "th"
       ? "AI Live Studio · Thai Live"
@@ -152,6 +155,7 @@ onUnmounted(() => {
     :needs-play="needsPlay"
     :error="error"
     :rewards="rewards"
+    :totals="totals"
     @play="play"
   />
   <div v-else class="obs-surface">
