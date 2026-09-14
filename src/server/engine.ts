@@ -49,7 +49,7 @@ export class Engine {
     });
     const matches: any[] = [];
     const reasons: string[] = [];
-    if (!event.identityReliable)
+    if (!event.identityReliable && event.type !== "like")
       return {
         matches,
         reasons: ["平台未提供可靠用户标识，仅记录事件，不执行回馈"],

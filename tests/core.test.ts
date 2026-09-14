@@ -1,5 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { Store } from "../src/server/store.ts";
 import { Engine } from "../src/server/engine.ts";
 function fixture() {
@@ -81,6 +85,69 @@ test("history recorded without any actions", () => {
   assert.equal(s.list("jobs").length, 0);
   s.close();
 });
+test("like milestones 10/50/100 each trigger expected action sets", () => {
+  const { s, e, room } = fixture();
+  for (const rule of s.list("rules"))
+    if (rule.roomId === room.id && rule.eventType === "like")
+      s.put("rules", { ...rule, enabled: false });
+  const addLikeRule = (minCount: number, actions: string[]) => {
+    s.put("rules", {
+      id: randomUUID(),
+      roomId: room.id,
+      enabled: true,
+      priority:
+        minCount === 100 ? 100 : minCount === 50 ? 90 : minCount === 10 ? 80 : 70,
+      eventType: "like",
+      name: `点赞档位-${minCount}`,
+      keywords: [],
+      giftIds: [],
+      minCount,
+      cooldownSec: 0,
+      oncePerSession: false,
+      continueMatching: false,
+      templateId: `like-${room.language}`,
+      actions,
+      ai: false,
+      avatar: false,
+      version: 1,
+    });
+  };
+  addLikeRule(10, ["speech", "overlay"]);
+  addLikeRule(50, ["speech", "overlay"]);
+  addLikeRule(100, ["print", "speech", "overlay"]);
+  const base = ev(room, {
+    type: "like",
+    count: 1,
+    text: "",
+    sourceId: "seed",
+    origin: "live",
+    identityReliable: true,
+  });
+  e.ingest({ ...base, sourceId: "l5", count: 5 });
+  assert.equal(s.list("jobs").length, 0);
+  e.ingest({ ...base, sourceId: "l10", count: 10 });
+  assert.equal(s.list("jobs").length, 2);
+  e.ingest({ ...base, sourceId: "l10-b", count: 10 });
+  assert.equal(s.list("jobs").length, 2);
+  e.ingest({ ...base, sourceId: "l50", count: 50 });
+  assert.equal(s.list("jobs").length, 4);
+  e.ingest({ ...base, sourceId: "l100", count: 100 });
+  assert.equal(s.list("jobs").length, 7);
+  const actions = s
+    .list("jobs")
+    .map((j: any) => j.action)
+    .sort();
+  assert.deepEqual(actions, [
+    "overlay",
+    "overlay",
+    "overlay",
+    "print",
+    "speech",
+    "speech",
+    "speech",
+  ]);
+  s.close();
+});
 test("room boundary rejected", () => {
   const { s, e, room } = fixture();
   assert.throws(() =>
@@ -103,6 +170,47 @@ test("blocked fan produces no feedback", () => {
   e.ingest(ev(room));
   assert.equal(s.list("jobs").length, 0);
   s.close();
+});
+test("old like-rule schema upgrades to 10/50/100 milestones", () => {
+  const dir = mkdtempSync(join(tmpdir(), "studio-upgrade-"));
+  const path = join(dir, "studio.sqlite3");
+  const legacy = new Store(path);
+  const room = legacy.list("rooms")[0];
+  for (const rule of legacy.list("rules")) {
+    if (rule.roomId === room.id && rule.eventType === "like")
+      legacy.delete("rules", rule.id);
+  }
+  legacy.put("rules", {
+    id: "legacy-like-100",
+    roomId: room.id,
+    name: "点赞里程碑",
+    enabled: true,
+    priority: 20,
+    eventType: "like",
+    keywords: [],
+    giftIds: [],
+    minCount: 100,
+    cooldownSec: 60,
+    oncePerSession: false,
+    continueMatching: false,
+    templateId: "like-zh",
+    actions: ["overlay"],
+    ai: false,
+    avatar: false,
+    version: 1,
+  });
+  legacy.setting("initialized", true);
+  legacy.setting("schemaVersion", 1);
+  legacy.close();
+  const s = new Store(path);
+  const roomRules = s
+    .list("rules")
+    .filter((r: any) => r.roomId === room.id && r.eventType === "like");
+  const counts = roomRules.map((r: any) => r.minCount).sort((a, b) => a - b);
+  assert.deepEqual(counts, [10, 50, 100]);
+  for (const rule of roomRules) assert.ok(rule.id);
+  s.close();
+  rmSync(dir, { recursive: true, force: true });
 });
 test("stale session cannot trigger feedback", () => {
   const { s, e, room } = fixture();
@@ -184,6 +292,32 @@ test("missing platform identity records evidence without rewards", () => {
   assert.equal(s.list("events")[0].status, "identity_unverified");
   assert.equal(s.list("jobs").length, 0);
   s.close();
+});
+
+test("like events can trigger rewards even when identity is unverified", () => {
+  const { s, e, room } = fixture();
+  try {
+    for (const rule of s.list("rules")) {
+      if (rule.eventType === "like" && rule.roomId === room.id)
+        s.put("rules", { ...rule, enabled: true });
+    }
+    e.ingest(
+      ev(room, {
+        type: "like",
+        userId: "unverified-audience",
+        identityReliable: false,
+        count: 10,
+      }),
+    );
+    assert.equal(s.list("jobs").length > 0, true);
+    assert.equal(
+      s.list("jobs").filter((j: any) => j.action === "print").length > 0,
+      false,
+    );
+    assert.equal(s.list("events")[0].status, "matched");
+  } finally {
+    s.close();
+  }
 });
 
 test("accepted printer work consumes capacity while held jobs do not prevent later admission", () => {

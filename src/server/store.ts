@@ -139,151 +139,209 @@ export class Store {
     this.db.close();
   }
   seed() {
-    if (this.setting("initialized")) return;
-    this.setting("config", {
-      paused: false,
-      printRate: 10,
-      physicalTestMode: true,
-      printQueueLimit: 100,
-      eventRetentionDays: 7,
-      jobRetentionDays: 90,
-      avatarRetentionHours: 24,
-      aiModel: "qwen3.8:27b",
-      aiUrl: "http://127.0.0.1:11434",
-      speechVolume: 0.8,
-      speechRate: 1,
-    });
-    for (const lang of ["zh", "th", "en"]) {
-      const body: any = {
-        zh: {
-          welcome: "欢迎 {{nickname}} 来到直播间！",
-          greeting: "{{nickname}}，你好！很高兴见到你。",
-          gift: "感谢 {{nickname}} 送来 {{count}} 个 {{giftName}}！",
-          blessing: "祝 {{nickname}} 每一天都开心，愿美好与你相伴。",
-          follow: "感谢 {{nickname}} 的关注，欢迎常来！",
-          like: "谢谢大家！点赞已达到 {{count}}！",
-        },
-        th: {
-          welcome: "ยินดีต้อนรับ {{nickname}}!",
-          greeting: "สวัสดี {{nickname}} ยินดีที่ได้พบคุณ",
-          gift: "ขอบคุณ {{nickname}} สำหรับ {{giftName}} {{count}} ชิ้น!",
-          blessing: "ขอให้ {{nickname}} มีความสุขในทุกวัน",
-          follow: "ขอบคุณ {{nickname}} ที่ติดตาม!",
-          like: "ขอบคุณสำหรับ {{count}} ไลก์!",
-        },
-        en: {
-          welcome: "Welcome, {{nickname}}!",
-          greeting: "Hello {{nickname}}, lovely to see you!",
-          gift: "Thank you {{nickname}} for {{count}} {{giftName}}!",
-          blessing: "Wishing {{nickname}} a wonderful day!",
-          follow: "Thank you for following, {{nickname}}!",
-          like: "Thank you for {{count}} likes!",
-        },
-      };
-      for (const [k, v] of Object.entries(body[lang]))
-        this.put("templates", {
-          id: `${k}-${lang}`,
-          name: `${k} · ${lang}`,
-          language: lang,
-          body: v,
-          version: 1,
-        });
-    }
-    for (const platform of ["tiktok", "douyin"]) {
-      const id = randomUUID();
-      this.put("rooms", {
-        id,
-        name: platform === "tiktok" ? "TikTok 直播间" : "抖音直播间",
-        platform,
-        address: "",
-        language: "zh",
-        voice: "thai-zixia",
-        printerId: null,
-        enabled: true,
-        status: "disconnected",
-        error: null,
-        sessionId: randomUUID(),
-        persona: "你是一位友好、简洁的直播主持人。只回应本次互动。",
-        knowledge: "",
-        overlayToken: randomBytes(24).toString("hex"),
-        capabilities: {
-          comment: "unverified",
-          gift: "unverified",
-          join: "unverified",
-          follow: "unverified",
-          like: "unverified",
-        },
+    if (!this.setting("initialized")) {
+      this.setting("config", {
+        paused: false,
+        printRate: 10,
+        physicalTestMode: true,
+        printQueueLimit: 100,
+        eventRetentionDays: 7,
+        jobRetentionDays: 90,
+        avatarRetentionHours: 24,
+        aiModel: "qwen3.8:27b",
+        aiUrl: "http://127.0.0.1:11434",
+        speechVolume: 0.8,
+        speechRate: 1,
       });
-      for (const spec of [
-        {
-          name: "礼物感谢",
-          eventType: "gift",
-          template: "gift",
-          priority: 100,
-        },
-        {
-          name: "生日与祝福",
-          eventType: "comment",
-          template: "blessing",
-          priority: 90,
-          keywords: ["生日快乐", "祝福"],
-          ai: true,
-          avatar: true,
-        },
-        {
-          name: "多语言问候",
-          eventType: "comment",
-          template: "greeting",
-          priority: 80,
-          keywords: ["你好", "hello", "สวัสดี"],
-        },
-        {
-          name: "首次关注",
-          eventType: "follow",
-          template: "follow",
-          priority: 60,
-          once: true,
-        },
-        {
-          name: "首次进场",
-          eventType: "join",
-          template: "welcome",
-          priority: 50,
-          once: true,
-        },
-        {
-          name: "点赞里程碑",
-          eventType: "like",
-          template: "like",
-          priority: 20,
-          minCount: 100,
-        },
-      ])
-        this.put("rules", {
-          id: randomUUID(),
-          roomId: id,
-          name: spec.name,
+      for (const lang of ["zh", "th", "en"]) {
+        const body: any = {
+          zh: {
+            welcome: "欢迎 {{nickname}} 来到直播间！",
+            greeting: "{{nickname}}，你好！很高兴见到你。",
+            gift: "感谢 {{nickname}} 送来 {{count}} 个 {{giftName}}！",
+            blessing: "祝 {{nickname}} 每一天都开心，愿美好与你相伴。",
+            follow: "感谢 {{nickname}} 的关注，欢迎常来！",
+            like: "谢谢大家！点赞已达到 {{count}}！",
+          },
+          th: {
+            welcome: "ยินดีต้อนรับ {{nickname}}!",
+            greeting: "สวัสดี {{nickname}} ยินดีที่ได้พบคุณ",
+            gift: "ขอบคุณ {{nickname}} สำหรับ {{giftName}} {{count}} ชิ้น!",
+            blessing: "ขอให้ {{nickname}} มีความสุขในทุกวัน",
+            follow: "ขอบคุณ {{nickname}} ที่ติดตาม!",
+            like: "ขอบคุณสำหรับ {{count}} ไลก์!",
+          },
+          en: {
+            welcome: "Welcome, {{nickname}}!",
+            greeting: "Hello {{nickname}}, lovely to see you!",
+            gift: "Thank you {{nickname}} for {{count}} {{giftName}}!",
+            blessing: "Wishing {{nickname}} a wonderful day!",
+            follow: "Thank you for following, {{nickname}}!",
+            like: "Thank you for {{count}} likes!",
+          },
+        };
+        for (const [k, v] of Object.entries(body[lang]))
+          this.put("templates", {
+            id: `${k}-${lang}`,
+            name: `${k} · ${lang}`,
+            language: lang,
+            body: v,
+            version: 1,
+          });
+      }
+      for (const platform of ["tiktok", "douyin"]) {
+        const id = randomUUID();
+        this.put("rooms", {
+          id,
+          name: platform === "tiktok" ? "TikTok 直播间" : "抖音直播间",
+          platform,
+          address: "",
+          language: "zh",
+          voice: "thai-zixia",
+          printerId: null,
           enabled: true,
-          priority: spec.priority,
-          eventType: spec.eventType,
-          keywords: spec.keywords ?? [],
-          giftIds: [],
-          minCount: spec.minCount ?? 1,
-          cooldownSec: spec.eventType === "gift" ? 0 : 60,
-          oncePerSession: spec.once ?? false,
-          continueMatching: false,
-          templateId: `${spec.template}-zh`,
-          actions:
-            spec.eventType === "join" || spec.eventType === "like"
-              ? ["overlay"]
-              : spec.eventType === "follow"
-                ? ["overlay", "speech"]
-                : ["print", "speech", "overlay"],
-          ai: spec.ai ?? false,
-          avatar: spec.avatar ?? spec.eventType === "gift",
-          version: 1,
+          status: "disconnected",
+          error: null,
+          sessionId: randomUUID(),
+          persona: "你是一位友好、简洁的直播主持人。只回应本次互动。",
+          knowledge: "",
+          overlayToken: randomBytes(24).toString("hex"),
+          capabilities: {
+            comment: "unverified",
+            gift: "unverified",
+            join: "unverified",
+            follow: "unverified",
+            like: "unverified",
+          },
         });
+        const defaultRules: any[] = [
+          {
+            name: "礼物感谢",
+            eventType: "gift",
+            template: "gift",
+            priority: 100,
+          },
+          {
+            name: "生日与祝福",
+            eventType: "comment",
+            template: "blessing",
+            priority: 90,
+            keywords: ["生日快乐", "祝福"],
+            ai: true,
+            avatar: true,
+          },
+          {
+            name: "多语言问候",
+            eventType: "comment",
+            template: "greeting",
+            priority: 80,
+            keywords: ["你好", "hello", "สวัสดี"],
+          },
+          {
+            name: "首次关注",
+            eventType: "follow",
+            template: "follow",
+            priority: 60,
+            once: true,
+          },
+          {
+            name: "首次进场",
+            eventType: "join",
+            template: "welcome",
+            priority: 50,
+            once: true,
+          },
+          ...[10, 50, 100].map((minCount) => ({
+            name:
+              minCount === 10
+                ? "点赞里程碑（10）"
+                : minCount === 50
+                  ? "点赞里程碑（50）"
+                  : "点赞里程碑（100）",
+            eventType: "like",
+            template: "like",
+            minCount,
+            priority: minCount === 100 ? 100 : minCount === 50 ? 90 : 80,
+            actions: minCount === 100 ? ["print", "speech", "overlay"] : ["speech", "overlay"],
+            cooldownSec: 0,
+          })),
+        ];
+        for (const spec of defaultRules)
+          this.put("rules", {
+            id: randomUUID(),
+            roomId: id,
+            name: spec.name,
+            enabled: true,
+            priority: spec.priority,
+            eventType: spec.eventType,
+            keywords: spec.keywords ?? [],
+            giftIds: [],
+            minCount: spec.minCount ?? 1,
+            cooldownSec: spec.cooldownSec ?? (spec.eventType === "gift" ? 0 : 60),
+            oncePerSession: spec.once ?? false,
+            continueMatching: false,
+            templateId: `${spec.template}-zh`,
+            actions:
+              spec.eventType === "join" || spec.eventType === "like"
+                ? spec.actions ?? ["overlay"]
+                : spec.eventType === "follow"
+                  ? ["overlay", "speech"]
+                  : ["print", "speech", "overlay"],
+            ai: spec.ai ?? false,
+            avatar: spec.avatar ?? spec.eventType === "gift",
+            version: 1,
+          });
+      }
+      this.setting("initialized", true);
     }
-    this.setting("initialized", true);
+    const schema = this.setting("schemaVersion") ?? 1;
+    if (schema < 2) {
+      this.upgradeLikeRules();
+      this.setting("schemaVersion", 2);
+    }
+  }
+  upgradeLikeRules() {
+    const required = [10, 50, 100];
+    const byRoomId = new Map<string, any[]>();
+    for (const rule of this.list("rules")) {
+      if (rule.eventType !== "like") continue;
+      const roomRules = byRoomId.get(rule.roomId) ?? [];
+      roomRules.push(rule);
+      byRoomId.set(rule.roomId, roomRules);
+    }
+    for (const room of this.list("rooms")) {
+      const existing = byRoomId.get(room.id) ?? [];
+      const present = new Set(existing.map((r) => Number(r.minCount)));
+      for (const minCount of required) {
+        if (!present.has(minCount)) {
+          const actions =
+            minCount === 100 ? ["print", "speech", "overlay"] : ["speech", "overlay"];
+          this.put("rules", {
+            id: randomUUID(),
+            roomId: room.id,
+            name:
+              minCount === 10
+                ? "点赞里程碑（10）"
+                : minCount === 50
+                  ? "点赞里程碑（50）"
+                  : "点赞里程碑（100）",
+            enabled: true,
+            priority: minCount === 100 ? 100 : minCount === 50 ? 90 : 80,
+            eventType: "like",
+            keywords: [],
+            giftIds: [],
+            minCount,
+            cooldownSec: 0,
+            oncePerSession: false,
+            continueMatching: false,
+            templateId: `like-${room.language ?? "zh"}`,
+            actions,
+            ai: false,
+            avatar: false,
+            version: 1,
+          });
+        }
+      }
+    }
   }
 }
