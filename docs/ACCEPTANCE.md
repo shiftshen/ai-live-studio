@@ -70,3 +70,9 @@ Mac锁屏阻止后续CUA手机/OBS操作。没有尝试绕过锁屏。开发、�
 源码已推送私有仓库[shiftshen/ai-live-studio](https://github.com/shiftshen/ai-live-studio)，默认分支main。48/48本地测试、类型检查通过。首次[GitHub检查](https://github.com/shiftshen/ai-live-studio/actions/runs/34814961125)未执行任何测试步骤：GitHub报告账户支付失败或消费额度限制。没有修改账单或购买额度，不能把这次未启动说成云端通过，也不能归因于代码测试失败。
 
 后台持续验收结束后将自动回查报告、更新文档并再次推送。原始纸面、设备秘密和直播数据不上传。后续现场恢复说明见`/Volumes/M2USB/Projects/ai-live-studio/docs/NEXT-SESSION.md`。
+
+## HTTP负载最终结果
+
+2026-09-14 06:42:01.553—06:52:01.559 UTC，实际600.006秒：请求60000、接收60000、入库60000、生成任务36000，错误0；并发读取状态600次，最慢827ms，百条批次P95 370ms、最大840ms，未落后目标节奏。报告passed=true。
+
+证据：`/Volumes/M2USB/Projects/ai-live-studio/var/evidence/http-load-1789368121458/result.json`。这是独立模拟HTTP和规则入队性能，Worker关闭，不代表真实直播、AI/语音供应商或实体输出性能。

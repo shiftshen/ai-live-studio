@@ -11,7 +11,7 @@
 - 真实双平台监测PID75195，起点2026-09-14 06:30:45.233 UTC，预计2小时终点08:30:45.233 UTC。读`/Volumes/M2USB/Projects/ai-live-studio/var/evidence/acceptance-corrected/report.json`及samples.jsonl；只有completed/passed满足才报告相应门槛。
 - 当前运行服务包含真实ID/Thai字体/共享10张额度/PATCH显式键修复。之后源码的retry/reprint容量强化、accepted占用入队额度、去除导入硬编码只在本地隔离测试通过，尚未重启部署。不得宣称这些后续改动已完成长时验收。
 - 持续测试结束前不要无故重启。若必须修复实际故障，保留失败报告、新目录重新计时。不要把新开始当旧时长累计。
-- HTTP负载PID85583，脚本`/Volumes/M2USB/Projects/ai-live-studio/scripts/load-http.ts`，独立目录`/Volumes/M2USB/Projects/ai-live-studio/var/evidence/http-load-1789368121458`，600秒/100每秒，20%规则命中+并发状态HTTP读取，Worker关闭。原始report必须限定验证范围。
+- HTTP负载已完成600.006秒，60000请求/接收/入库，36000任务，0错误，600次状态读取，最大827ms；报告passed=true。原PID85583，脚本`/Volumes/M2USB/Projects/ai-live-studio/scripts/load-http.ts`，独立目录`/Volumes/M2USB/Projects/ai-live-studio/var/evidence/http-load-1789368121458`，600秒/100每秒，20%规则命中+并发状态HTTP读取，Worker关闭。原始report必须限定验证范围。
 - 临时TikTok礼物观察`beellaa_19`和`t.r.b.o0`，脚本var/gift-observe.mjs，10分钟自动结束。第二个不在线，第一个当时仅收到评论/进场/点赞/关注。读var/evidence/gift-observe-*.json。不是工作台打印闭环。
 - 已创建当前任务心跳，automation id `ai-live-studio`，每10分钟检查；未完成且无新故障时保持安静。最终报告和GitHub更新后暂停它，避免无限重复。
 
