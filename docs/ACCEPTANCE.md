@@ -76,3 +76,40 @@ Mac锁屏阻止后续CUA手机/OBS操作。没有尝试绕过锁屏。开发、�
 2026-09-14 06:42:01.553—06:52:01.559 UTC，实际600.006秒：请求60000、接收60000、入库60000、生成任务36000，错误0；并发读取状态600次，最慢827ms，百条批次P95 370ms、最大840ms，未落后目标节奏。报告passed=true。
 
 证据：`/Volumes/M2USB/Projects/ai-live-studio/var/evidence/http-load-1789368121458/result.json`。这是独立模拟HTTP和规则入队性能，Worker关闭，不代表真实直播、AI/语音供应商或实体输出性能。
+
+## 本次改动文件
+
+- `/Volumes/M2USB/Projects/ai-live-studio/README.md`
+- `/Volumes/M2USB/Projects/ai-live-studio/docs/ACCEPTANCE.md`
+- `/Volumes/M2USB/Projects/ai-live-studio/docs/NEXT-SESSION.md`
+- `/Volumes/M2USB/Projects/ai-live-studio/docs/OPERATIONS.md`
+- `/Volumes/M2USB/Projects/ai-live-studio/docs/TEST-RUN-20260914.md`
+- `/Volumes/M2USB/Projects/ai-live-studio/docs/THIRD-PARTY.md`
+- `/Volumes/M2USB/Projects/ai-live-studio/docs/task-cards/2026-09-14-completion.md`
+- `/Volumes/M2USB/Projects/ai-live-studio/integrations/dycast/LICENSE`
+- `/Volumes/M2USB/Projects/ai-live-studio/integrations/dycast/NOTICE`
+- `/Volumes/M2USB/Projects/ai-live-studio/integrations/dycast/README.md`
+- `/Volumes/M2USB/Projects/ai-live-studio/integrations/dycast/build-config.json`
+- `/Volumes/M2USB/Projects/ai-live-studio/integrations/dycast/build-report.json`
+- `/Volumes/M2USB/Projects/ai-live-studio/integrations/dycast/build.sh`
+- `/Volumes/M2USB/Projects/ai-live-studio/integrations/dycast/public-fields.patch`
+- `/Volumes/M2USB/Projects/ai-live-studio/integrations/dycast/test-public-fields.mjs`
+- `/Volumes/M2USB/Projects/ai-live-studio/scripts/acceptance-soak.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/scripts/import-damo.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/scripts/load-http.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/src/client/App.vue`
+- `/Volumes/M2USB/Projects/ai-live-studio/src/server/adapters.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/src/server/app.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/src/server/engine.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/src/server/providers.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/src/server/routes/data.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/src/server/routes/devices.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/src/server/routes/management.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/src/server/store.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/src/server/worker.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/src/shared/types.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/tests/acceptance-soak.test.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/tests/core.test.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/tests/final-regression.test.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/tests/printer-config.test.ts`
+- `/Volumes/M2USB/Projects/ai-live-studio/tests/worker.test.ts`
