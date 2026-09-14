@@ -162,13 +162,15 @@ export async function avatarBytes(raw: string) {
     if (size > 2_000_000) throw Error("头像过大");
     parts.push(chunk);
   }
-  return sharp(Buffer.concat(parts), { limitInputPixels: 16_000_000 })
+  return formatAvatar(Buffer.concat(parts));
+}
+export async function formatAvatar(bytes: Buffer, monochrome = false) {
+  const image = sharp(bytes, { limitInputPixels: 16_000_000 })
     .rotate()
-    .resize(224, 224, { fit: "cover" })
-    .greyscale()
-    .threshold(140)
-    .png({ palette: true, colours: 2 })
-    .toBuffer();
+    .resize(224, 224, { fit: "cover" });
+  return monochrome
+    ? image.greyscale().threshold(140).png({ palette: true, colours: 2 }).toBuffer()
+    : image.png().toBuffer();
 }
 export async function generateText(job: any, settings: any) {
   const response = await fetch(new URL("/api/chat", settings.aiUrl), {

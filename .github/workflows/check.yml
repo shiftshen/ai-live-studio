@@ -13,3 +13,23 @@ jobs:
       - run: npm run check
       - run: npm test
       - run: npm run build
+  dycast-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify pinned Dycast fields and relay startup order
+        shell: bash
+        run: |
+          set -euo pipefail
+          dycast_dir="$RUNNER_TEMP/ai-live-dycast"
+          git clone https://github.com/qinant/dycast-desktop.git "$dycast_dir"
+          git -C "$dycast_dir" checkout --detach 70050e27092fc726e3f7c84339b0edfd36d70130
+          git -C "$dycast_dir" apply "$GITHUB_WORKSPACE/integrations/dycast/public-fields.patch"
+          git -C "$dycast_dir" apply "$GITHUB_WORKSPACE/integrations/dycast/relay-order.patch"
+          npm --prefix "$dycast_dir" ci --no-audit --no-fund
+          node integrations/dycast/test-public-fields.mjs "$dycast_dir"
+          node integrations/dycast/test-relay-order.mjs "$dycast_dir"
+          npm --prefix "$dycast_dir" run type-check

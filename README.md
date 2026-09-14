@@ -2,12 +2,12 @@
 
 本地直播互动工作台：接收 TikTok、抖音真实直播事件，按房间与场次执行规则，生成文字、头像、语音、OBS 展示及飞鹅打印任务。项目独立于 DAMO；不修改 DAMO 业务数据。
 
-已搭建中泰双语“心愿邮局”直播场景：原创背景、活动图片、7条规则/语言、昵称与头像卡、语音感谢。自己的抖音号已通过官方Mac直播伴侣实际开播9分7秒，观众端看到画面，真实评论产生并完成语音和展示任务。本轮新增打印0张。
+已搭建中泰双语“心愿邮局”：原创背景、高清活动图、每种语言7条规则、昵称/头像卡和语音感谢。自己的抖音实播两场，分别9分7秒、9分52秒（第二场用户发起）。第二场接通后9条真实事件完成3组语音与展示，平台回放已验证中文欢迎音画。本轮新增打印0张。
 
-**全项目尚未全部现场验收通过**：真实礼物复验、观众端语音回放、自己的TikTok开播、实体头像和可靠纸面闭环仍未完成。软件自动测试57项通过；本地可听录制与观众端可听分开记录。详情见[本轮实播报告](https://github.com/shiftshen/ai-live-studio/blob/main/docs/OWN-LIVE-RESULT.md)。
+**全项目尚未全部现场验收通过**：真实礼物复验、自己的TikTok开播、实体头像及可靠纸面闭环、昵称/数量逐字发音仍未完成。软件58项测试和Dycast27项契约检查通过。详情见[实播报告](https://github.com/shiftshen/ai-live-studio/blob/main/docs/OWN-LIVE-RESULT.md)。
 
-![中文活动设计](https://raw.githubusercontent.com/shiftshen/ai-live-studio/main/public/live-assets/activity-zh.jpg)
-![泰文活动设计](https://raw.githubusercontent.com/shiftshen/ai-live-studio/main/public/live-assets/activity-th.jpg)
+![中文活动设计](https://raw.githubusercontent.com/shiftshen/ai-live-studio/main/public/live-assets/activity-zh.png)
+![泰文活动设计](https://raw.githubusercontent.com/shiftshen/ai-live-studio/main/public/live-assets/activity-th.png)
 
 ## 启动
 

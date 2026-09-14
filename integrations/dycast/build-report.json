@@ -1,10 +1,10 @@
 {
-  "verifiedAt": "2026-09-14T06:18:16.594939+00:00",
+  "verifiedAt": "2026-09-14T10:45:40.497576+00:00",
   "upstream": "https://github.com/qinant/dycast-desktop",
   "revision": "70050e27092fc726e3f7c84339b0edfd36d70130",
   "license": "MIT",
   "app": "/Volumes/M2USB/Projects/ai-live-studio/var/vendor/Dycast AI Live Studio.app",
-  "binarySha256": "55a9384ffe7819d2db8e8112722c75d7ddc5e9276f5898e429be31e3e91e2d4f",
+  "binarySha256": "27ec54108330a290ec743414b6813fda3a86faee1c8e704a7ea61e98e3ba1b95",
   "architecture": "arm64",
   "bundleIdentifier": "local.ai-live-studio.dycast",
   "signature": "ad-hoc, codesign --verify --deep --strict passed",
@@ -16,10 +16,11 @@
     "typecheck": "passed",
     "viteProductionBuild": "passed",
     "rustReleaseBundle": "passed",
-    "fullBuildScriptExitCode": 0
+    "fullBuildScriptExitCode": 0,
+    "relayStartupOrder": 3
   },
-  "buildLog": "/Volumes/M2USB/Projects/ai-live-studio/var/build/dycast-build-verified.log",
+  "buildLog": "/Volumes/M2USB/Projects/ai-live-studio/var/build/dycast-handshake-build.log",
   "launched": true,
-  "liveEventValidation": "Launched on 2026-09-14; authenticated relay received real comment/join/like/follow events with reliable numeric user IDs. Real gift/group end not observed yet.",
+  "liveEventValidation": "Two own-account Douyin broadcasts observed real comments and joins; late room handshake was repaired after the second live session. The rebuilt startup-order fix has three real UI callback regression tests; no third broadcast was started.",
   "fieldBoundary": "Pinned User decoder has id:string and secUid:string, no idStr. Missing real IDs remain missing. secUid/numeric identity aliases not joined."
 }

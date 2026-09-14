@@ -5,7 +5,21 @@ import {
   sign,
   safeAvatarUrl,
   generateText,
+  formatAvatar,
 } from "../src/server/providers.ts";
+import sharp from "sharp";
+test("screen avatars retain color while thermal avatars use black and white", async () => {
+  const source = await sharp({ create: { width: 24, height: 12, channels: 3, background: { r: 220, g: 30, b: 60 } } }).png().toBuffer();
+  const screen = await formatAvatar(source);
+  const {data, info} = await sharp(screen).raw().toBuffer({resolveWithObject: true});
+  assert.equal(info.width, 224);
+  assert.equal(info.height, 224);
+  assert.ok(data[0] > data[1] + 100, "The screen must not show a thresholded silhouette");
+  const paper = await formatAvatar(screen, true);
+  const bw = await sharp(paper).removeAlpha().raw().toBuffer();
+  assert.ok([...bw].every(value => value === 0 || value === 255));
+  assert.ok(paper.length < 10000);
+});
 test("untrusted Feie tags cannot add copies or formatting", () => {
   const s = feieContent("<QR>bad</QR>\n你好");
   assert.ok(!s.includes("<QR>"));

@@ -1,0 +1,13 @@
+diff --git a/src/views/IndexView.vue b/src/views/IndexView.vue
+index 0394766..a82d24a 100644
+--- a/src/views/IndexView.vue
++++ b/src/views/IndexView.vue
+@@ -401,6 +401,8 @@ const connectLive = function () {
+       setRoomInputStatus(true);
+       connectStatus.value = 1;
+       setRoomInfo(info);
++      // A relay may have been started before this room finished connecting.
++      if (relayWs?.isConnected()) relayWs.send(JSON.stringify(cast.getLiveInfo()));
+       addConsoleMessage('直播间已连接');
+     });
+     cast.on('error', err => {

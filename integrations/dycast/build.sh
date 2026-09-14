@@ -16,9 +16,15 @@ if git -C "$build_dir" apply --check "$integration_dir/public-fields.patch" 2>/d
 else
   git -C "$build_dir" apply --reverse --check "$integration_dir/public-fields.patch"
 fi
+if git -C "$build_dir" apply --check "$integration_dir/relay-order.patch" 2>/dev/null; then
+  git -C "$build_dir" apply "$integration_dir/relay-order.patch"
+else
+  git -C "$build_dir" apply --reverse --check "$integration_dir/relay-order.patch"
+fi
 cd "$build_dir"
 npm ci --no-audit --no-fund
 node "$integration_dir/test-public-fields.mjs" "$build_dir"
+node "$integration_dir/test-relay-order.mjs" "$build_dir"
 npm run tauri -- build --config "$integration_dir/build-config.json" --bundles app --ci -- --locked
 app_source="$CARGO_TARGET_DIR/release/bundle/macos/Dycast AI Live Studio.app"
 app_destination="${DYCAST_APP_DESTINATION:-$project_dir/var/vendor/Dycast AI Live Studio.app}"

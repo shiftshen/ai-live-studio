@@ -25,3 +25,7 @@ Default result: `/Volumes/M2USB/Projects/ai-live-studio/var/vendor/Dycast AI Liv
 ## Validation boundaries
 
 `test-public-fields.mjs` has 15 behavioral cases, 3 wiring assertions and 6 assertions exercising actual upstream protobuf encoders/decoders (64-bit ID, gift group/type, social action). Fixtures are explicitly synthetic codec inputs, not captured users or production events. Type-check/build proves compilation; A read-only live session on 2026-09-14 subsequently observed reliable public numeric IDs for comment/join/like/follow through the patched app. Real gift/group-end coverage is still unverified. Existing captures made by the old app cannot recover dropped IDs or group IDs. If the upstream websocket omits all real identifiers, viewers remain anonymous. Identifier availability may vary across event types; switching between secUid and numeric IDs is not automatically linked by this patch.
+
+## 转发连接顺序修订
+
+relay-order.patch 在真实房间连接回调补发握手，覆盖先开转发、后连直播的顺序。test-relay-order.mjs 提取实际UI回调执行3项回归；与原24项字段/接线/protobuf检查一起在CI运行。build.sh应用两份补丁并执行检查。本地修订应用已重建、签名核验及启动；实播证据与未完成项见 /Volumes/M2USB/Projects/ai-live-studio/docs/OWN-LIVE-RESULT.md。

@@ -153,6 +153,7 @@ const media = computed(() => {
   letter-spacing: 2px;
 }
 .wish-letter {
+  flex-shrink: 0;
   position: relative;
   background: #fffaf2;
   color: #193f42;
@@ -191,8 +192,11 @@ const media = computed(() => {
   white-space: pre-line;
 }
 .letter-message {
-  font-size: 17px;
-  line-height: 1.65;
+  flex-shrink: 0;
+  max-width: 100%;
+  white-space: pre-wrap;
+  font-size: 16px;
+  line-height: 1.5;
   margin: 0;
   overflow-wrap: anywhere;
   max-height: 220px;
@@ -206,13 +210,13 @@ const media = computed(() => {
   display: flex;
   gap: 6px;
   align-items: center;
-  margin-top: 18px;
+  margin-top: 10px;
   font-size: 10px;
   color: #af5144;
 }
 .letter-avatar {
-  width: 62px;
-  height: 62px;
+  width: 48px;
+  height: 48px;
   object-fit: cover;
   border-radius: 50%;
   border: 3px solid #e9d9c7;

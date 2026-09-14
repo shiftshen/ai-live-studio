@@ -9,6 +9,7 @@ import {
   generateText,
   generateSpeech,
   avatarBytes,
+  formatAvatar,
 } from "./providers.ts";
 export class Worker {
   busy = false;
@@ -270,6 +271,7 @@ export class Worker {
           bytes = prepared.avatarBytes;
           if (!bytes)
             throw Object.assign(Error("头像无法处理"), { definite: true });
+          bytes = await formatAvatar(bytes, true);
           if (bytes.length > 10000)
             throw Object.assign(Error("头像超过飞鹅10KB限制"), {
               definite: true,
@@ -329,7 +331,7 @@ export class Worker {
         try {
           bytes = await avatarBytes(avatar);
           avatarFile =
-            createHash("sha256").update(avatar).digest("hex") + ".png";
+            createHash("sha256").update("screen-v1:" + avatar).digest("hex") + ".png";
           writeFileSync(join(this.mediaDir, avatarFile), bytes);
           avatar = "/api/v1/media/" + avatarFile;
         } catch {
