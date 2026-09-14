@@ -1,6 +1,20 @@
 import { randomUUID } from "node:crypto";
 import { Store } from "./store.ts";
 import { Engine } from "./engine.ts";
+// TikTokLiveConnection 2.4 uses v3 protobuf; legacy giftDetails is v2 only.
+export function tiktokGiftFields(d: any) {
+  return {
+    giftId: d.giftId ? String(d.giftId) : undefined,
+    giftName:
+      d.gift?.name ??
+      d.giftDetails?.giftName ??
+      d.extendedGiftInfo?.name ??
+      "礼物",
+    streakId: d.groupId ? String(d.groupId) : undefined,
+    streakable: Number(d.gift?.type ?? d.giftDetails?.giftType) === 1,
+    repeatEnd: d.repeatEnd === true || Number(d.repeatEnd) === 1,
+  };
+}
 export function roomAddress(platform: string, address: string) {
   const s = address.trim();
   if (platform === "tiktok") {
@@ -91,17 +105,8 @@ export class Adapters {
               type,
               origin: "live",
               text: d.content ?? d.comment ?? "",
-              giftId: d.giftId ? String(d.giftId) : undefined,
-              giftName:
-                type === "gift"
-                  ? (d.giftDetails?.giftName ??
-                    d.extendedGiftInfo?.name ??
-                    "礼物")
-                  : undefined,
+              ...(type === "gift" ? tiktokGiftFields(d) : {}),
               count: Math.max(1, n),
-              streakId: d.groupId ? String(d.groupId) : undefined,
-              streakable: d.giftDetails?.giftType === 1,
-              repeatEnd: d.repeatEnd === true,
               occurredAt:
                 Number(d.common?.createTime ?? Date.now() / 1000) * 1000,
             };
