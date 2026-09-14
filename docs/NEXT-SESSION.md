@@ -8,6 +8,7 @@
 
 ## 当前持续任务
 
+- 双平台30分钟采集已通过（1801.404秒/31采样点，抖音1882条、TikTok1367条，重启0，未出现礼物）；证据var/evidence/acceptance-corrected/30min-final.json。两小时仍在运行。
 - 真实双平台监测PID75195，起点2026-09-14 06:30:45.233 UTC，预计2小时终点08:30:45.233 UTC。读`/Volumes/M2USB/Projects/ai-live-studio/var/evidence/acceptance-corrected/report.json`及samples.jsonl；只有completed/passed满足才报告相应门槛。
 - 当前运行服务包含真实ID/Thai字体/共享10张额度/PATCH显式键修复。之后源码的retry/reprint容量强化、accepted占用入队额度、去除导入硬编码只在本地隔离测试通过，尚未重启部署。不得宣称这些后续改动已完成长时验收。
 - 持续测试结束前不要无故重启。若必须修复实际故障，保留失败报告、新目录重新计时。不要把新开始当旧时长累计。

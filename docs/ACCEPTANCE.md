@@ -53,7 +53,7 @@
 
 ## 尚未通过
 
-真实礼物→唯一任务→实体纸面闭环；真实礼物连送最终数量；实体头像；OBS实际可听音画；双平台连续30分钟；两小时稳定运行；最终代码重启部署后的设备复核。
+真实礼物→唯一任务→实体纸面闭环；真实礼物连送最终数量；实体头像；OBS实际可听音画；两小时稳定运行；最终代码重启部署后的设备复核。
 
 Mac锁屏阻止后续CUA手机/OBS操作。没有尝试绕过锁屏。开发、接口测试和后台采集仍可继续。解除锁屏后应继续未通过项目，而不是重复已消耗的实体额度。
 
@@ -113,3 +113,13 @@ Mac锁屏阻止后续CUA手机/OBS操作。没有尝试绕过锁屏。开发、�
 - `/Volumes/M2USB/Projects/ai-live-studio/tests/final-regression.test.ts`
 - `/Volumes/M2USB/Projects/ai-live-studio/tests/printer-config.test.ts`
 - `/Volumes/M2USB/Projects/ai-live-studio/tests/worker.test.ts`
+
+## 双平台30分钟采集通过
+
+2026-09-14 06:30:45.234—07:00:46.638 UTC，1801.404秒，31个采样点。`dualPlatform30min.completed=true`、`passed=true`，重启0、失败项0；每个后续一分钟间隔两平台均有非历史live事件。
+
+- 抖音：评论175、关注36、进场1014、点赞657，共1882条。
+- TikTok：评论37、关注39、进场1248、点赞43，共1367条。
+- 合计3249条。未出现真实礼物；实体打印仍为5张，没有用模拟事件替代礼物验收。
+
+证据：`/Volumes/M2USB/Projects/ai-live-studio/var/evidence/acceptance-corrected/30min-final.json`。这是采样连续性门槛，不能证明采样点之间绝无短暂中断，也不替代真实礼物、纸面、OBS或完整两小时验收。两小时观察仍在运行，未重启部署后续代码。
